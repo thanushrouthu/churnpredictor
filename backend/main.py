@@ -25,54 +25,32 @@ import pandas as pd
 import shap
 from fastapi import FastAPI, HTTPException, BackgroundTasks, Depends, Request, Response, status
 from fastapi.middleware.cors import CORSMiddleware
-from pydantic import BaseModel, Field, EmailStr, ConfigDict
+from pydantic import BaseModel, Field, ConfigDict
 from google.oauth2 import id_token as google_id_token
 from google.auth.transport import requests as google_requests
 
-# Ensure workspace root and backend directory in sys.path
-BACKEND_DIR = Path(__file__).resolve().parent
-WORKSPACE_ROOT = BACKEND_DIR.parent
+# Ensure workspace root is in sys.path
+WORKSPACE_ROOT = Path(__file__).resolve().parent.parent
 if str(WORKSPACE_ROOT) not in sys.path:
     sys.path.insert(0, str(WORKSPACE_ROOT))
-if str(BACKEND_DIR) not in sys.path:
-    sys.path.insert(0, str(BACKEND_DIR))
 
-try:
-    from backend.db import (
-        create_user,
-        get_or_create_google_user,
-        get_user_by_email,
-        get_user_by_id,
-        log_prediction,
-        get_all_employees_with_tasks,
-        get_tasks_by_employee_id,
-        get_all_tasks,
-        get_task_by_id,
-        assign_task_employee,
-        create_employee,
-        update_task,
-        delete_task,
-        update_employee,
-        delete_employee,
-    )
-except ImportError:
-    from db import (
-        create_user,
-        get_or_create_google_user,
-        get_user_by_email,
-        get_user_by_id,
-        log_prediction,
-        get_all_employees_with_tasks,
-        get_tasks_by_employee_id,
-        get_all_tasks,
-        get_task_by_id,
-        assign_task_employee,
-        create_employee,
-        update_task,
-        delete_task,
-        update_employee,
-        delete_employee,
-    )
+from backend.db import (
+    create_user,
+    get_or_create_google_user,
+    get_user_by_email,
+    get_user_by_id,
+    log_prediction,
+    get_all_employees_with_tasks,
+    get_tasks_by_employee_id,
+    get_all_tasks,
+    get_task_by_id,
+    assign_task_employee,
+    create_employee,
+    update_task,
+    delete_task,
+    update_employee,
+    delete_employee,
+)
 from src.preprocessing import get_feature_names, normalize_customer_features
 from src.calibrated_model import CalibratedXGBClassifier
 
