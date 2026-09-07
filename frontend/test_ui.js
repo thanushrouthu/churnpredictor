@@ -56,7 +56,7 @@ async function runUiTest() {
 
     // Save screenshots
     const artifactScreenshot = 'C:\\Users\\thanu\\.gemini\\antigravity-ide\\brain\\b80949c1-fe42-47bf-a936-4571134487bc\\churn_dashboard_verified.png';
-    const workspaceScreenshot = path.resolve(__dirname, '..', 'churn_dashboard_verified.png');
+    const workspaceScreenshot = path.resolve(__dirname, '..', 'docs', 'screenshots', 'churn_dashboard_verified.png');
 
     await page.screenshot({ path: artifactScreenshot, fullPage: true });
     await page.screenshot({ path: workspaceScreenshot, fullPage: true });

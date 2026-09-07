@@ -581,18 +581,12 @@ def main():
     if html2_path.exists():
         html2_path.unlink()
 
-    # Copy exports to root folder as well for immediate accessibility
-    for src in [pdf1_path, docx1_path, pdf2_path, docx2_path]:
-        dst = WORKSPACE_ROOT / src.name
-        with open(src, "rb") as sf, open(dst, "wb") as df:
-            df.write(sf.read())
-
     print("\n======================================================================")
-    print("ALL 4 FILES GENERATED AND SAVED IN ROOT AND DOCS/EXPORTS:")
-    print(f"1. {pdf1_path.name}  ({pdf1_path.stat().st_size / 1024:.1f} KB)")
-    print(f"2. {docx1_path.name} ({docx1_path.stat().st_size / 1024:.1f} KB)")
-    print(f"3. {pdf2_path.name}  ({pdf2_path.stat().st_size / 1024:.1f} KB)")
-    print(f"4. {docx2_path.name} ({docx2_path.stat().st_size / 1024:.1f} KB)")
+    print("ALL 4 FILES GENERATED AND PRESERVED IN DOCS/EXPORTS:")
+    print(f"1. {pdf1_path}  ({pdf1_path.stat().st_size / 1024:.1f} KB)")
+    print(f"2. {docx1_path} ({docx1_path.stat().st_size / 1024:.1f} KB)")
+    print(f"3. {pdf2_path}  ({pdf2_path.stat().st_size / 1024:.1f} KB)")
+    print(f"4. {docx2_path} ({docx2_path.stat().st_size / 1024:.1f} KB)")
     print("======================================================================")
 
 
