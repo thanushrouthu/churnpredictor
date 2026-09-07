@@ -1,0 +1,709 @@
+@import url('https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700;800&display=swap');
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+@layer base {
+  body {
+    @apply bg-zinc-950 text-zinc-100 antialiased tracking-tight;
+    font-family: 'Inter', system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    -webkit-font-smoothing: antialiased;
+    -moz-osx-font-smoothing: grayscale;
+    text-rendering: optimizeLegibility;
+  }
+}
+
+.font-mono {
+  font-family: ui-monospace, SFMono-Regular, Menlo, Monaco, Consolas, monospace;
+  font-feature-settings: "tnum" on;
+}
+
+.tabular-nums {
+  font-variant-numeric: tabular-nums;
+  font-feature-settings: "tnum" on;
+}
+
+/* Glassmorphic card styling (Monochrome) */
+.glass-panel {
+  background: rgba(18, 20, 26, 0.75);
+  backdrop-filter: blur(16px);
+  -webkit-backdrop-filter: blur(16px);
+  border: 1px solid rgba(255, 255, 255, 0.08);
+  box-shadow: 0 8px 32px 0 rgba(0, 0, 0, 0.6);
+}
+
+.glass-panel-glow {
+  background: rgba(18, 20, 26, 0.85);
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+  border: 1px solid rgba(255, 255, 255, 0.16);
+  box-shadow: 0 0 45px -8px rgba(255, 255, 255, 0.08);
+}
+
+/* 3D Scene Wrapper & Preserved Transform Space */
+.card-3d-scene {
+  perspective: 1200px;
+  transform-style: preserve-3d;
+}
+
+.card-3d-body {
+  transform-style: preserve-3d;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  will-change: transform, box-shadow;
+  transition: transform 0.08s ease-out, box-shadow 0.08s ease-out;
+}
+
+/* Subtle Angular Chamfered Card Shell */
+.hud-card-outer {
+  clip-path: polygon(
+    0 0,
+    calc(100% - 12px) 0,
+    100% 12px,
+    100% 100%,
+    12px 100%,
+    0 calc(100% - 12px)
+  );
+  box-shadow: 0 35px 80px -15px rgba(0, 0, 0, 0.95);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+.hud-card-inner {
+  clip-path: polygon(
+    0 0,
+    calc(100% - 11.5px) 0,
+    100% 11.5px,
+    100% 100%,
+    11.5px 100%,
+    0 calc(100% - 11.5px)
+  );
+  background: rgba(13, 14, 18, 0.88);
+  backdrop-filter: blur(28px);
+  -webkit-backdrop-filter: blur(28px);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+}
+
+/* Larger Angular Chamfered Dashboard Panel Shell */
+.hud-panel-outer {
+  clip-path: polygon(
+    0 0,
+    calc(100% - 14px) 0,
+    100% 14px,
+    100% 100%,
+    14px 100%,
+    0 calc(100% - 14px)
+  );
+  box-shadow: 0 25px 60px -15px rgba(0, 0, 0, 0.85);
+}
+
+.hud-panel-inner {
+  clip-path: polygon(
+    0 0,
+    calc(100% - 13.5px) 0,
+    100% 13.5px,
+    100% 100%,
+    13.5px 100%,
+    0 calc(100% - 13.5px)
+  );
+  background: rgba(13, 14, 18, 0.82);
+  backdrop-filter: blur(24px);
+  -webkit-backdrop-filter: blur(24px);
+}
+
+/* Chart and Panel Entrance Animation */
+@keyframes chart-fade-in {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.animate-chart-in {
+  animation: chart-fade-in 0.5s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Custom Monochrome Range Sliders */
+input[type="range"].slider-hud {
+  accent-color: #ffffff;
+}
+input[type="range"].slider-hud::-webkit-slider-thumb {
+  background: #ffffff;
+  box-shadow: 0 0 10px rgba(255, 255, 255, 0.8);
+  border: 1px solid #000000;
+}
+
+/* Option B: Ambient Glass Light/Glow Drift inside Card */
+@keyframes ambient-glass-drift {
+  0% {
+    transform: translate(-25%, -20%) scale(1);
+    opacity: 0.45;
+  }
+  35% {
+    transform: translate(20%, -10%) scale(1.08);
+    opacity: 0.65;
+  }
+  70% {
+    transform: translate(10%, 25%) scale(0.96);
+    opacity: 0.5;
+  }
+  100% {
+    transform: translate(-20%, 15%) scale(1.04);
+    opacity: 0.6;
+  }
+}
+
+.animate-ambient-drift {
+  animation: ambient-glass-drift 12s ease-in-out infinite alternate;
+}
+
+/* Primary Button with Subtle 8px Corner Clip */
+.btn-clip-corner {
+  clip-path: polygon(
+    0 0,
+    calc(100% - 8px) 0,
+    100% 8px,
+    100% 100%,
+    0 100%
+  );
+}
+
+/* Input Field Lift & Glow on Focus */
+.input-hud-field {
+  transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
+}
+.input-hud-field:focus-within {
+  transform: translateY(-1.5px);
+  box-shadow: 0 4px 20px -2px rgba(255, 255, 255, 0.1),
+              0 0 10px rgba(255, 255, 255, 0.06);
+}
+
+/* Primary Button Hover Elevation and Click Press */
+.btn-hud-primary {
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 4px 14px -2px rgba(0, 0, 0, 0.7);
+}
+.btn-hud-primary:hover:not(:disabled) {
+  transform: translateY(-2px) scale(1.012);
+  box-shadow: 0 12px 28px -4px rgba(255, 255, 255, 0.22),
+              0 4px 12px rgba(0, 0, 0, 0.8);
+}
+.btn-hud-primary:active:not(:disabled) {
+  transform: translateY(1px) scale(0.985);
+  box-shadow: 0 2px 6px rgba(0, 0, 0, 0.6);
+}
+
+/* Google Auth Button (Official styling matching HUD frame) */
+.btn-google {
+  background: rgba(255, 255, 255, 0.04);
+  border: 1px solid rgba(255, 255, 255, 0.14);
+  color: #f4f4f5;
+  transition: all 0.18s cubic-bezier(0.16, 1, 0.3, 1);
+  box-shadow: 0 2px 8px -1px rgba(0, 0, 0, 0.5);
+}
+.btn-google:hover:not(:disabled) {
+  background: rgba(255, 255, 255, 0.09);
+  border-color: rgba(255, 255, 255, 0.3);
+  color: #ffffff;
+  transform: translateY(-1.5px) scale(1.008);
+  box-shadow: 0 8px 22px -4px rgba(255, 255, 255, 0.12),
+              0 4px 10px rgba(0, 0, 0, 0.6);
+}
+.btn-google:active:not(:disabled) {
+  transform: translateY(0.5px) scale(0.99);
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.6);
+}
+
+/* Subtle Card Flip Transition on Sign In / Sign Up tab toggle */
+.card-flip-enter {
+  animation: card-flip-settle 0.42s cubic-bezier(0.22, 1, 0.36, 1) both;
+}
+
+@keyframes card-flip-settle {
+  0% {
+    opacity: 0.82;
+    transform: rotateY(var(--flip-direction, 9deg)) scale(0.985);
+  }
+  100% {
+    opacity: 1;
+    transform: rotateY(0deg) scale(1);
+  }
+}
+
+/* 3D Depth-Layered Entrance on Page Mount */
+@keyframes card-depth-entrance {
+  0% {
+    opacity: 0;
+    transform: translateZ(-80px) rotateX(6deg) scale(0.95);
+  }
+  65% {
+    opacity: 0.95;
+    transform: translateZ(8px) rotateX(-1deg) scale(1.005);
+  }
+  100% {
+    opacity: 1;
+    transform: translateZ(0) rotateX(0deg) scale(1);
+  }
+}
+
+.animate-card-entrance {
+  animation: card-depth-entrance 0.72s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Custom shake animation for form validation errors */
+@keyframes shake {
+  0%, 100% { transform: translateX(0); }
+  20%, 60% { transform: translateX(-6px); }
+  40%, 80% { transform: translateX(6px); }
+}
+
+.animate-shake {
+  animation: shake 0.4s cubic-bezier(0.36, 0.07, 0.19, 0.97) both;
+}
+
+/* Faint Scanning Line Sweep (Monochrome) */
+@keyframes cyber-scan {
+  0% { transform: translateY(-100%); opacity: 0; }
+  15% { opacity: 0.22; }
+  85% { opacity: 0.22; }
+  100% { transform: translateY(1100%); opacity: 0; }
+}
+
+.animate-cyber-scan {
+  animation: cyber-scan 6s linear infinite;
+}
+
+/* Periodic Glitch / Flicker (Monochrome, no color hue shifts) */
+@keyframes cyber-glitch {
+  0%, 93%, 100% { opacity: 1; filter: none; transform: none; }
+  94% { opacity: 0.88; filter: contrast(1.25); }
+  95% { opacity: 1; filter: none; }
+  97% { opacity: 0.84; transform: skewX(0.5deg); }
+  98% { opacity: 1; transform: none; }
+}
+
+.animate-cyber-glitch {
+  animation: cyber-glitch 5s infinite;
+}
+
+/* Subtle Staggered Card Entrance Animation */
+@keyframes hud-fade-up {
+  0% {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  100% {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.animate-fade-up-1 {
+  animation: hud-fade-up 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: 40ms;
+}
+
+.animate-fade-up-2 {
+  animation: hud-fade-up 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: 110ms;
+}
+
+.animate-fade-up-3 {
+  animation: hud-fade-up 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: 180ms;
+}
+
+.animate-fade-up-4 {
+  animation: hud-fade-up 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: 250ms;
+}
+
+.animate-fade-up-5 {
+  animation: hud-fade-up 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: 320ms;
+}
+
+.animate-fade-up-6 {
+  animation: hud-fade-up 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: 390ms;
+}
+
+/* Live SYS:ONLINE Status Badge Subtle Pulse (Strictly Monochrome) */
+@keyframes status-pulse {
+  0%, 100% {
+    border-color: rgba(255, 255, 255, 0.2);
+    box-shadow: 0 0 0 0 rgba(255, 255, 255, 0);
+  }
+  50% {
+    border-color: rgba(255, 255, 255, 0.45);
+    box-shadow: 0 0 8px 1px rgba(255, 255, 255, 0.12);
+  }
+}
+
+@keyframes pulse-dot {
+  0%, 100% {
+    opacity: 0.5;
+    transform: scale(0.9);
+  }
+  50% {
+    opacity: 1;
+    transform: scale(1.15);
+    box-shadow: 0 0 5px rgba(255, 255, 255, 0.8);
+  }
+}
+
+.animate-status-pulse {
+  animation: status-pulse 3.2s ease-in-out infinite;
+}
+
+.animate-pulse-dot {
+  animation: pulse-dot 3.2s ease-in-out infinite;
+}
+
+/* Graduated Shadow Strength & Depth Layers */
+.shadow-layer-nav {
+  box-shadow: 0 12px 36px -8px rgba(0, 0, 0, 0.9), 0 1px 0 0 rgba(255, 255, 255, 0.08);
+}
+
+.shadow-layer-kpi {
+  box-shadow: 0 20px 48px -12px rgba(0, 0, 0, 0.95), 0 0 1px 1px rgba(255, 255, 255, 0.12);
+}
+.shadow-layer-kpi:hover {
+  box-shadow: 0 30px 60px -15px rgba(0, 0, 0, 0.98), 0 0 24px rgba(255, 255, 255, 0.1), 0 0 1px 1px rgba(255, 255, 255, 0.22);
+}
+
+.shadow-layer-panel {
+  box-shadow: 0 28px 65px -16px rgba(0, 0, 0, 0.92), 0 0 1px 1px rgba(255, 255, 255, 0.07);
+}
+
+/* Subtle 3D Perspective Shift on Hover for Major Panels */
+.panel-3d-scene {
+  perspective: 1200px;
+}
+
+.panel-3d-hover {
+  transition: transform 0.28s cubic-bezier(0.16, 1, 0.3, 1), box-shadow 0.28s cubic-bezier(0.16, 1, 0.3, 1), border-color 0.28s ease;
+  will-change: transform, box-shadow;
+}
+.panel-3d-hover:hover {
+  transform: translateY(-2px) scale(1.002);
+  box-shadow: 0 32px 70px -18px rgba(0, 0, 0, 0.96), 0 0 18px rgba(255, 255, 255, 0.06);
+}
+
+/* Dashboard Staggered Entrance Animations */
+@keyframes dashboard-stagger-in {
+  0% {
+    opacity: 0;
+    transform: translateY(12px);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+.animate-stagger-1 {
+  animation: dashboard-stagger-in 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: 0ms;
+}
+
+.animate-stagger-2 {
+  animation: dashboard-stagger-in 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: 80ms;
+}
+
+.animate-stagger-3 {
+  animation: dashboard-stagger-in 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: 170ms;
+}
+
+.animate-stagger-4 {
+  animation: dashboard-stagger-in 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: 260ms;
+}
+
+.animate-stagger-5 {
+  animation: dashboard-stagger-in 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: 350ms;
+}
+
+.animate-stagger-6 {
+  animation: dashboard-stagger-in 0.45s cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: 440ms;
+}
+
+/* Micro-Animations: Icon Bounce & Preset Switch */
+@keyframes trend-bounce {
+  0%, 100% {
+    transform: translateY(0);
+  }
+  50% {
+    transform: translateY(-2px);
+  }
+}
+
+.animate-trend-bounce {
+  animation: trend-bounce 2.2s ease-in-out infinite;
+}
+
+@keyframes preset-switch-pop {
+  0% {
+    opacity: 0.85;
+    transform: scale(0.992);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1);
+  }
+}
+
+.animate-preset-switch {
+  animation: preset-switch-pop 0.25s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+/* Respect prefers-reduced-motion for all card and background animations */
+@media (prefers-reduced-motion: reduce) {
+  .animate-ambient-drift,
+  .hud-card-outer,
+  .animate-cyber-scan,
+  .animate-cyber-glitch,
+  .animate-shake,
+  .card-3d-body,
+  .input-hud-field,
+  .btn-hud-primary,
+  .animate-fade-up-1,
+  .animate-fade-up-2,
+  .animate-fade-up-3,
+  .animate-fade-up-4,
+  .animate-fade-up-5,
+  .animate-fade-up-6,
+  .animate-status-pulse,
+  .animate-pulse-dot,
+  .animate-chart-in,
+  .kpi-card-scene,
+  .hud-panel-outer,
+  .hud-panel-inner,
+  .animate-stagger-1,
+  .animate-stagger-2,
+  .animate-stagger-3,
+  .animate-stagger-4,
+  .animate-stagger-5,
+  .animate-stagger-6,
+  .animate-trend-bounce,
+  .animate-preset-switch,
+  .panel-3d-hover {
+    animation: none !important;
+    transition: none !important;
+    transform: none !important;
+    opacity: 1 !important;
+  }
+}
+
+/* Custom scrollbar (Monochrome) */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+::-webkit-scrollbar-track {
+  background: #090a0f;
+}
+::-webkit-scrollbar-thumb {
+  background: #262626;
+  border-radius: 4px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #404040;
+}
+
+/* ==============================================================================
+   TACTILE 3D "BLOOM" PRESS EFFECT SYSTEM
+   ============================================================================== */
+
+/* Base Bloom Target: Spring Return Transition on Release */
+.bloom-target,
+[data-bloom] {
+  position: relative;
+  overflow: hidden;
+  transition: transform 0.38s cubic-bezier(0.34, 1.56, 0.64, 1),
+              box-shadow 0.38s cubic-bezier(0.34, 1.56, 0.64, 1),
+              filter 0.38s ease-out;
+  will-change: transform, box-shadow;
+  -webkit-tap-highlight-color: transparent;
+}
+
+/* On Press: Physical Depression (3-5% scale-down) */
+.bloom-target.is-bloom-pressed,
+[data-bloom].is-bloom-pressed {
+  transition: transform 0.08s ease-out, box-shadow 0.08s ease-out !important;
+}
+
+/* Primary Actions: Sign In, Submit, Scenario Presets */
+.bloom-target.is-bloom-pressed[data-bloom-active="primary"],
+[data-bloom="primary"].is-bloom-pressed {
+  transform: scale(0.955) translateY(1.5px) !important;
+  box-shadow: 0 1px 4px rgba(0, 0, 0, 0.8), 0 0 12px rgba(255, 255, 255, 0.2) !important;
+}
+
+/* Secondary Actions: Tabs, Dropdowns, Toggles, Logout */
+.bloom-target.is-bloom-pressed[data-bloom-active="secondary"],
+[data-bloom="secondary"].is-bloom-pressed {
+  transform: scale(0.97) translateY(1px) !important;
+  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.7), 0 0 8px rgba(255, 255, 255, 0.12) !important;
+}
+
+/* Subtle Actions: Icons, Links */
+.bloom-target.is-bloom-pressed[data-bloom-active="subtle"],
+[data-bloom="subtle"].is-bloom-pressed {
+  transform: scale(0.98) translateY(0.5px) !important;
+}
+
+/* Spring Releasing State: Slight Overshoot settle */
+.bloom-target.is-bloom-releasing,
+[data-bloom].is-bloom-releasing {
+  transition: transform 0.4s cubic-bezier(0.34, 1.56, 0.64, 1),
+              box-shadow 0.4s cubic-bezier(0.34, 1.56, 0.64, 1) !important;
+}
+
+/* Dropdown Bloom Wrapper */
+.select-bloom-wrapper {
+  position: relative;
+  overflow: hidden;
+  display: block;
+  transition: transform 0.38s cubic-bezier(0.34, 1.56, 0.64, 1);
+  will-change: transform;
+}
+.select-bloom-wrapper.is-bloom-pressed {
+  transform: scale(0.985) translateY(0.5px) !important;
+  transition: transform 0.08s ease-out !important;
+}
+
+/* Tactile Bloom Flare Element (STRICTLY pointer-events: none) */
+.bloom-shockwave-flare {
+  position: absolute;
+  transform: translate(-50%, -50%) scale(0.2);
+  border-radius: 9999px;
+  pointer-events: none !important;
+  user-select: none !important;
+  z-index: 50;
+  mix-blend-mode: screen;
+  will-change: transform, opacity;
+  animation: bloom-flare-expand 0.42s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+}
+
+/* Primary Intensity Flare */
+.bloom-shockwave-flare.bloom-primary {
+  width: 220px;
+  height: 220px;
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.92) 0%,
+    rgba(255, 255, 255, 0.55) 20%,
+    rgba(255, 255, 255, 0.2) 44%,
+    rgba(255, 255, 255, 0.05) 66%,
+    transparent 78%
+  );
+  box-shadow: 0 0 28px 10px rgba(255, 255, 255, 0.45);
+}
+
+/* Secondary Intensity Flare */
+.bloom-shockwave-flare.bloom-secondary {
+  width: 160px;
+  height: 160px;
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.75) 0%,
+    rgba(255, 255, 255, 0.4) 22%,
+    rgba(255, 255, 255, 0.12) 48%,
+    transparent 72%
+  );
+  box-shadow: 0 0 18px 5px rgba(255, 255, 255, 0.25);
+}
+
+/* Subtle Intensity Flare */
+.bloom-shockwave-flare.bloom-subtle {
+  width: 95px;
+  height: 95px;
+  background: radial-gradient(
+    circle,
+    rgba(255, 255, 255, 0.55) 0%,
+    rgba(255, 255, 255, 0.22) 24%,
+    rgba(255, 255, 255, 0.06) 50%,
+    transparent 70%
+  );
+  box-shadow: 0 0 10px 2px rgba(255, 255, 255, 0.15);
+}
+
+/* Expansion and Dispersion Animation */
+@keyframes bloom-flare-expand {
+  0% {
+    transform: translate(-50%, -50%) scale(0.18);
+    opacity: 0.95;
+  }
+  35% {
+    opacity: 0.8;
+  }
+  100% {
+    transform: translate(-50%, -50%) scale(2.3);
+    opacity: 0;
+  }
+}
+
+/* Reduced Motion Fallback */
+.is-bloom-reduced-flash {
+  opacity: 0.82 !important;
+  transition: opacity 0.12s ease !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .bloom-target,
+  [data-bloom],
+  .bloom-shockwave-flare,
+  .select-bloom-wrapper,
+  .card-flip-enter,
+  .animate-card-entrance,
+  .card-3d-body {
+    animation: none !important;
+    transform: none !important;
+    transition: none !important;
+  }
+}
+
+/* Modal and Drawer Glass Elements */
+@keyframes modal-scale-in {
+  0% {
+    opacity: 0;
+    transform: scale(0.96) translateY(8px);
+  }
+  100% {
+    opacity: 1;
+    transform: scale(1) translateY(0);
+  }
+}
+
+.animate-modal-in {
+  animation: modal-scale-in 0.28s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+@keyframes toast-slide-up {
+  0% {
+    opacity: 0;
+    transform: translateY(12px) scale(0.95);
+  }
+  100% {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+
+.animate-toast-in {
+  animation: toast-slide-up 0.32s cubic-bezier(0.16, 1, 0.3, 1) both;
+}
+
+
