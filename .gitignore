@@ -11,6 +11,7 @@ frontend/*.env
 data/app.db
 data/*.db
 models/*.pkl
+!models/churn_pipeline.pkl
 
 # Python
 __pycache__/
