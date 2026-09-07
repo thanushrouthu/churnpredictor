@@ -9,11 +9,7 @@ import TaskQueueView from './views/TaskQueueView.jsx';
 import EmployeesView from './views/EmployeesView.jsx';
 import AnalysisView from './views/AnalysisView.jsx';
 import { supabase } from './utils/supabase.js';
-
-const API_BASE_URL =
-  typeof window !== 'undefined'
-    ? `${window.location.protocol}//${window.location.hostname}:8000`
-    : 'http://127.0.0.1:8000';
+import { API_BASE_URL } from './utils/api.js';
 
 export default function App() {
   const [currentUser, setCurrentUser] = useState(null);

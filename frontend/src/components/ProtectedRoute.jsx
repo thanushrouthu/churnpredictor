@@ -2,11 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Navigate, Outlet, useLocation } from 'react-router-dom';
 import { Zap } from 'lucide-react';
 import { supabase } from '../utils/supabase.js';
-
-const API_BASE_URL =
-  typeof window !== 'undefined'
-    ? `${window.location.protocol}//${window.location.hostname}:8000`
-    : 'http://127.0.0.1:8000';
+import { API_BASE_URL } from '../utils/api.js';
 
 export default function ProtectedRoute({ currentUser, setCurrentUser }) {
   const location = useLocation();
@@ -25,14 +21,18 @@ export default function ProtectedRoute({ currentUser, setCurrentUser }) {
         // 2. Check FastAPI backend session (/auth/me) for httpOnly cookie persistence
         let backendUser = null;
         try {
+          const controller = new AbortController();
+          const timeoutId = setTimeout(() => controller.abort(), 2500);
           const res = await fetch(`${API_BASE_URL}/auth/me`, {
             credentials: 'include',
+            signal: controller.signal,
           });
+          clearTimeout(timeoutId);
           if (res.ok) {
             backendUser = await res.json();
           }
         } catch {
-          // Backend may be offline or session absent
+          // Backend may be offline or session absent - gracefully continue
         }
 
         if (!isMounted) return;

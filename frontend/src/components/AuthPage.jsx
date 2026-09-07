@@ -16,11 +16,7 @@ import {
 } from 'lucide-react';
 import ChurnNetwork3D from './ChurnNetwork3D.jsx';
 import { supabase } from '../utils/supabase.js';
-
-const API_BASE_URL =
-  typeof window !== 'undefined'
-    ? `${window.location.protocol}//${window.location.hostname}:8000`
-    : 'http://127.0.0.1:8000';
+import { API_BASE_URL } from '../utils/api.js';
 
 // Official Google 4-Color Brand Icon
 function GoogleIcon({ className = "w-4 h-4" }) {
