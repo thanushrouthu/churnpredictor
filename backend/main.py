@@ -11,10 +11,13 @@ Includes:
 
 import os
 import sys
+import logging
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
 from typing import List, Optional, Dict, Any
 from contextlib import asynccontextmanager
+
+logger = logging.getLogger("churnguard")
 
 import bcrypt
 import jwt
