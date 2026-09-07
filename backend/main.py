@@ -107,15 +107,20 @@ app = FastAPI(
 )
 
 # Explicit allowed origins required for CORS when allow_credentials=True
-ALLOWED_ORIGINS = [
+allowed_origins_env = os.getenv("ALLOWED_ORIGINS", os.getenv("CORS_ORIGINS", ""))
+parsed_origins = [o.strip() for o in allowed_origins_env.split(",") if o.strip()]
+
+ALLOWED_ORIGINS = list(dict.fromkeys([
+    "https://churnpredictor-roan.vercel.app",
     "http://localhost:5173",
     "http://127.0.0.1:5173",
     "http://localhost:3000",
     "http://127.0.0.1:3000",
-]
+] + parsed_origins))
 
 app.add_middleware(
     CORSMiddleware,
+    allow_origins=ALLOWED_ORIGINS,
     allow_origin_regex=r"^https?://.*$",
     allow_credentials=True,
     allow_methods=["*"],
