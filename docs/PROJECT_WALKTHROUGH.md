@@ -125,6 +125,17 @@ Why does this matter economically?
 - **What it does**: Operational verification cockpit demonstrating calibrated probability distributions, active retention assignments, and real-time inference telemetry.
 - **Why it exists**: Guarantees system operators have immediate feedback that probability outputs match realistic calibrated distributions.
 
+### View 7: Model Insights & Portfolio Analytics (`/model-insights`)
+![Model Insights - Performance & PR Curve](screenshots/07_model_insights_performance.png)
+![Model Insights - Top 5 SHAP Drivers](screenshots/08_model_insights_shap.png)
+- **What it does**: Executive-level research and evaluation view visualizing all 6 core ML requirements using 100% real Kaggle test data (64,374 rows) and model weights:
+  1. *Test Evaluation & PR Curve*: 4 3D KPI cards (ROC-AUC 0.7471, Recall 74.54%, Precision 62.23%, Accuracy 66.51%), secondary badges (Brier Score 0.2013, FPR 40.72%, F1 0.6783, PR-AUC 0.6924), Recharts Precision-Recall curve with 47.37% baseline, 2x2 confusion matrix (TN 20,083, FP 13,798, FN 7,764, TP 22,729) with dynamic decision threshold operating points (0.30 to 0.70), and before-vs-after Platt calibration audit (+55.16% Brier gain).
+  2. *Top 5 SHAP Portfolio Drivers*: Horizontal bar chart visualizing portfolio-wide feature attributions computed via `shap.TreeExplainer`: #1 Support Calls (1.5817), #2 Total Spend (1.2541), #3 Payment Delay (1.0017), #4 Contract Length_Monthly (0.8642), #5 Age (0.8200), alongside executive risk mechanisms and a complete 15-feature ranking table.
+  3. *Exploratory Data Analysis (EDA)*: Portfolio baseline churn (56.71% across 440,832 training rows), Contract Length analysis (Monthly 100.0%, Quarterly 46.03%, Annual 46.08%), Tenure lifecycle buckets, Total Spend value bifurcation (<$500 vs >$500), and an interactive 8x8 Pearson correlation heatmap (Support Calls +0.5743, Total Spend -0.4294).
+  4. *Pipeline & Architecture*: Detailed specifications for numerical pipeline (`SimpleImputer(median)` + `StandardScaler`), categorical pipeline (`SimpleImputer(most_frequent)` + `OneHotEncoder`), empirical SMOTE evaluation verdict and rejection rationale, and `CalibratedXGBClassifier` hyperparameters with exact Platt scaling formula ($cal_a = 0.7061, cal_b = -3.5068$).
+- **Why it exists**: Provides complete algorithmic transparency and auditability for model risk governance, enterprise stakeholders, and ML validation reviews.
+- **Key Code**: [`ModelInsightsView.jsx`](../frontend/src/views/ModelInsightsView.jsx) with tab state management, Recharts AreaChart for PR curve, and precomputed backend caching via [`backend/model_insights.py`](../backend/model_insights.py).
+
 ---
 
 ## 3. Real Component Hierarchy & Data Flow
@@ -139,12 +150,13 @@ main.jsx
             ├── Sidebar.jsx (Navigation Links, User Badge, Logout Action)
             ├── DashboardBackground3D.jsx (Multi-plane Perspective Mesh Canvas)
             └── <Outlet /> (Dynamic View Content)
-                ├── /overview   -> DashboardOverview.jsx (KPIs, Grouped Bar Charts, Histograms)
-                │                  └── KpiCard3D.jsx (Perspective transform on hover)
-                ├── /tasks      -> TaskQueueView.jsx (Table, Modals, Multi-Select Compare)
-                │                  └── BloomButton.jsx (Tactile physical press button)
-                ├── /employees  -> EmployeesView.jsx (Department filters, Workload badges)
-                └── /analysis/:id -> AnalysisView.jsx (Gauge, SHAP Bar Chart, Sandbox Form)
+                ├── /overview        -> DashboardOverview.jsx (KPIs, Grouped Bar Charts, Histograms)
+                │                       └── KpiCard3D.jsx (Perspective transform on hover)
+                ├── /tasks           -> TaskQueueView.jsx (Table, Modals, Multi-Select Compare)
+                │                       └── BloomButton.jsx (Tactile physical press button)
+                ├── /employees       -> EmployeesView.jsx (Department filters, Workload badges)
+                ├── /analysis/:id    -> AnalysisView.jsx (Gauge, SHAP Bar Chart, Sandbox Form)
+                └── /model-insights  -> ModelInsightsView.jsx (4 Tabs, PR Curve, 2x2 Matrix, SHAP BarChart, EDA)
 ```
 
 **How Data Flows**:
@@ -236,6 +248,7 @@ main.jsx
 |---|---|---|---|
 | `GET /health` | Healthcheck & model readiness | None | `{ status: "online", model_loaded: true, features_count: 15 }` |
 | `POST /predict` | **(Protected)** Standalone inference | Customer attributes | `{ churn_probability, risk_level, top_factors: [...] }` |
+| `GET /model/insights` | **(Protected)** Precomputed 6-requirement audit | None (auth session) | Cached JSON with EDA, PR curve, 2x2 matrix, SHAP drivers |
 
 ### Task Queue & Customer CRUD Routes
 | Method & Route | Purpose | Input Payload | Output Response |
@@ -298,6 +311,14 @@ Many tutorials cut corners by writing "mock" Google login that blindly accepts a
 - **Solution**: In [`backend/db.py`](../backend/db.py), we implemented a multi-tier resilient storage pattern:
   - Database helper functions (`create_user`, `get_all_tasks`, `log_prediction`) first attempt the query via the official `supabase` Python client.
   - If Supabase fails, is unconfigured, or times out, execution gracefully falls back to a local SQLite database at `data/app.db`.
+
+### 5. Production Security Hardening & Zero-Trust Audit
+Following a comprehensive production security audit, the backend and session layer were hardened to enterprise compliance standards:
+- **Zero-Trust Protected Endpoints**: All prediction, customer task CRUD, employee roster, and model insight routes (`/predict`, `/tasks`, `/employees`, `/model/insights`) enforce authenticated user sessions via `Depends(get_current_user)`.
+- **Mandatory JWT Secret Verification**: Startup lifecycle guards immediately abort execution if `JWT_SECRET` is unset or default, preventing weak signature exploits.
+- **Strict CORS & Domain Origin Regex**: Cross-origin credentialed cookie transmission is strictly bound to production Vercel domains (`https://churnpredictor(-[a-zA-Z0-9_-]+)?\.vercel\.app`) and local development hosts, eliminating cross-site request forgery vectors.
+- **Rate Limiting Protection**: Integrated SlowAPI rate limiting (5 requests per minute per IP) with customized HTTP 429 JSON responses on sensitive authentication and signup endpoints to block brute-force credential stuffing.
+- **Sub-Millisecond Model Insights Cache**: The `GET /model/insights` endpoint utilizes a precomputed JSON disk cache (`data/model_insights_cache.json`) generated by `backend/model_insights.py`, delivering comprehensive 6-requirement analytics in 0.27ms without re-running heavy test set inference on every request.
   - On startup, `init_sqlite_tables()` checks table schemas using `PRAGMA table_info` and applies idempotent migrations (e.g. adding `is_google_auth` and `avatar_url` columns), ensuring 100% schema parity between cloud PostgreSQL and local SQLite.
 
 ---

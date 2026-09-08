@@ -35,3 +35,6 @@ dist/
 .idea/
 .DS_Store
 Thumbs.db
+
+# Local-only documentation (never pushed to GitHub)
+local_docs/

@@ -7,7 +7,9 @@
 [![Tailwind CSS](https://img.shields.io/badge/TailwindCSS-3.4-38B2AC.svg?style=flat&logo=tailwind-css&logoColor=white)](https://tailwindcss.com)
 [![Three.js](https://img.shields.io/badge/Three.js-0.185-black.svg?style=flat&logo=three.js&logoColor=white)](https://threejs.org)
 
-> 📖 **Looking for the in-depth interview guide & architectural deep dive?** Read the [Full 6-Part Zero-to-Hero Walkthrough](docs/PROJECT_WALKTHROUGH.md).
+> 🚀 **Live Production Deployment**: [https://churnpredictor-roan.vercel.app](https://churnpredictor-roan.vercel.app) *(Mirror: [https://churnpredictor.vercel.app](https://churnpredictor.vercel.app))*  
+> ⚙️ **Backend Inference API**: Render-hosted FastAPI service with automated Swagger documentation (`/docs`)  
+> 📖 **Architecture & Deep Dive**: [Full 6-Part Zero-to-Hero Walkthrough](docs/PROJECT_WALKTHROUGH.md) | [Download Case Study PDF](docs/ChurnGuard_Case_Study.pdf)
 
 ---
 
@@ -28,7 +30,8 @@ The system implements a decoupled, event-driven inference architecture that guar
 |                                    1. CLIENT LAYER (React 18 + Vite)                               |
 |  - Enterprise HUD: Interactive Glass Panels, 3D Tilt Cards, Canvas Parallax                        |
 |  - Views: Authentication (/login), Overview (/overview), Task Queue (/tasks),                      |
-|           Employee Roster (/employees), Deep-Dive Churn Analysis (/analysis/:id)                   |
+|           Employee Roster (/employees), Deep-Dive Churn Analysis (/analysis/:id),                  |
+|           Model Insights & Portfolio Analytics (/model-insights)                                   |
 +-------------------------------------------------+--------------------------------------------------+
                                                   |
                           HTTPS Requests + Secure httpOnly Session Cookie (SameSite=Lax)
@@ -71,6 +74,11 @@ The system implements a decoupled, event-driven inference architecture that guar
 - **Instance-Level SHAP Feature Explanations**: Dedicated Account Evaluation view (`/analysis/:taskId`) detailing local risk factors, risk directionality, and personalized retention action items.
 - **Multi-Customer Comparison Modal**: Side-by-side comparison modal in the Task Queue allowing operators to contrast contracts, charges, and risk drivers across multiple accounts simultaneously.
 - **Risk-Tier Portfolio Analytics**: Executive Overview (`/overview`) with KPI cards, grouped bar charts comparing High, Moderate, and Low risk tiers, and a 5-bucket churn probability histogram.
+- **Model Insights & Research Methodology (`/model-insights`)**: Comprehensive model audit dashboard visibly demonstrating all 6 core ML engineering requirements using 100% real Kaggle test data (64,374 rows) and trained ensemble weights:
+  - *Test Evaluation & PR Curve*: 4 executive 3D KPI cards (ROC-AUC 0.7471, Recall 74.54%, Precision 62.23%, Accuracy 66.51%), secondary badges (Brier Score 0.2013, FPR 40.72%, F1 0.6783, PR-AUC 0.6924), Recharts Precision-Recall curve with 47.37% baseline, 2x2 confusion matrix (TN 20,083, FP 13,798, FN 7,764, TP 22,729) with dynamic decision threshold operating points (0.30 to 0.70), and before-vs-after Platt calibration audit (+55.16% Brier score reliability gain).
+  - *Top 5 SHAP Portfolio Drivers*: Horizontal bar chart visualizing portfolio-wide feature attributions computed via `shap.TreeExplainer`: #1 Support Calls (1.5817), #2 Total Spend (1.2541), #3 Payment Delay (1.0017), #4 Contract Length_Monthly (0.8642), #5 Age (0.8200), alongside executive risk mechanisms and a complete 15-feature ranking table.
+  - *Exploratory Data Analysis (EDA)*: Portfolio baseline churn (56.71% across 440,832 training rows), Contract Length analysis (Monthly 100.0%, Quarterly 46.03%, Annual 46.08%), Tenure lifecycle buckets, Total Spend value bifurcation (<$500 vs >$500), and an interactive 8x8 Pearson correlation heatmap (Support Calls +0.5743, Total Spend -0.4294).
+  - *Pipeline & Architecture*: Detailed specifications for numerical pipeline (`SimpleImputer(median)` + `StandardScaler`), categorical pipeline (`SimpleImputer(most_frequent)` + `OneHotEncoder`), empirical SMOTE evaluation verdict and rejection rationale, and `CalibratedXGBClassifier` hyperparameters with exact Platt scaling formula ($cal_a = 0.7061, cal_b = -3.5068$).
 - **Aesthetic Monochrome Design System**: Custom dark-mode UI (`zinc-950` to `zinc-100`) featuring glassmorphism (`backdrop-blur-md`), 3D canvas backgrounds (particle constellations and interactive churn networks), and micro-interactions (`Framer Motion`).
 
 ---
@@ -169,6 +177,13 @@ In `backend/db.py`, database operations target Supabase PostgreSQL as the primar
 ### 4. Reactive In-Memory SHAP Explanations on Record Edits
 When customer parameters are modified via `PUT /tasks/{task_id}`, the API checks if any inference-relevant attributes changed. If true, the updated record is piped through the in-memory pipeline, generating updated calibrated churn probabilities and top 5 local SHAP attributions in sub-50ms before writing to the database.
 
+### 5. Production Security Hardening & Zero-Trust API Guardrails
+Following a comprehensive production security audit, the backend and session layer were hardened to enterprise compliance standards:
+- **Zero-Trust Protected Endpoints**: All prediction, customer task CRUD, employee roster, and model insight routes (`/predict`, `/tasks`, `/employees`, `/model/insights`) enforce authenticated user sessions via `Depends(get_current_user)`.
+- **Mandatory JWT Secret Verification**: Startup lifecycle guards immediately abort execution if `JWT_SECRET` is unset or default, preventing weak signature exploits.
+- **Strict CORS & Domain Origin Regex**: Cross-origin credentialed cookie transmission is strictly bound to production Vercel domains (`https://churnpredictor(-[a-zA-Z0-9_-]+)?\.vercel\.app`) and local development hosts, eliminating cross-site request forgery vectors.
+- **Rate Limiting Protection**: Integrated SlowAPI rate limiting (5 requests per minute per IP) with customized HTTP 429 JSON responses on sensitive authentication and signup endpoints to block brute-force credential stuffing.
+
 ---
 
 ## 6. Screenshots & Interface Walkthrough
@@ -212,6 +227,19 @@ Instance-level customer analysis detailing calculated churn risk via an SVG circ
 Live operational dashboard showing verified calibrated risk distributions, active customer retention tasks, and real-time inference cards:
 
 ![Calibrated System HUD Verification](docs/screenshots/06_calibrated_hud.png)
+
+---
+
+### 7. Model Insights & Portfolio Analytics (`/model-insights`)
+Comprehensive research and methodology dashboard with interactive tabs showcasing holdout test set performance, precision-recall trade-offs, SHAP portfolio feature rankings, and exploratory cohort analysis:
+
+![Model Insights - Performance & PR Curve](docs/screenshots/07_model_insights_performance.png)
+
+![Model Insights - Top 5 SHAP Drivers](docs/screenshots/08_model_insights_shap.png)
+
+![Model Insights - Exploratory Data Analysis](docs/screenshots/09_model_insights_eda.png)
+
+![Model Insights - Pipeline & Architecture](docs/screenshots/10_model_insights_methodology.png)
 
 ---
 
