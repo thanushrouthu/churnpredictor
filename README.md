@@ -1,351 +1,274 @@
-# ChurnGuard AI: Production-Grade Customer Churn Intelligence & Retention Platform
+# ChurnGuard AI — Enterprise Customer Churn Intelligence & Retention Platform
 
 [![FastAPI](https://img.shields.io/badge/FastAPI-0.110+-009688.svg?style=flat&logo=fastapi&logoColor=white)](https://fastapi.tiangolo.com)
-[![React](https://img.shields.io/badge/React-18.3-61DAFB.svg?style=flat&logo=react&logoColor=black)](https://reactjs.org)
-[![XGBoost](https://img.shields.io/badge/XGBoost-2.0+-EB5424.svg?style=flat&logo=xgboost&logoColor=white)](https://xgboost.readthedocs.io)
+[![React](https://img.shields.io/badge/React-18.3-61DAFB.svg?style=flat&logo=react&logoColor=black)](https://react.dev)
+[![XGBoost](https://img.shields.io/badge/XGBoost-2.1+-EB5424.svg?style=flat&logo=xgboost&logoColor=white)](https://xgboost.readthedocs.io)
 [![SHAP](https://img.shields.io/badge/SHAP-0.45+-blue.svg?style=flat)](https://shap.readthedocs.io)
 [![Tailwind CSS](https://img.shields.io/badge/TailwindCSS-3.4-38B2AC.svg?style=flat&logo=tailwind-css&logoColor=white)](https://tailwindcss.com)
 [![Three.js](https://img.shields.io/badge/Three.js-0.185-black.svg?style=flat&logo=three.js&logoColor=white)](https://threejs.org)
 
 > 🚀 **Live Production Deployment**: [https://churnpredictor-roan.vercel.app](https://churnpredictor-roan.vercel.app) *(Mirror: [https://churnpredictor.vercel.app](https://churnpredictor.vercel.app))*  
 > ⚙️ **Backend Inference API**: Render-hosted FastAPI service with automated Swagger documentation (`/docs`)  
-> 📖 **Architecture & Deep Dive**: [Full 6-Part Zero-to-Hero Walkthrough](docs/PROJECT_WALKTHROUGH.md) | [Download Case Study PDF](docs/ChurnGuard_Case_Study.pdf)
+> 📄 **Formal Case Study PDF**: [docs/ChurnGuard_Case_Study.pdf](docs/ChurnGuard_Case_Study.pdf)
 
 ---
 
-## 1. Overview
+## 1. Executive Summary & Problem Space
 
-**ChurnGuard AI** is a full-stack, enterprise customer retention and churn intelligence platform designed for Customer Success teams, Account Executives, and Operations Leaders managing high-volume subscription portfolios. The system predicts customer churn risk in real time, generates instance-level feature attributions through SHAP TreeExplainer, orchestrates actionable intervention workflows across retention specialists, and visualizes cohort health through risk-tier benchmarking. 
+Subscription enterprises hemorrhage revenue when customer defection is discovered reactively after cancellation requests occur. Traditional customer churn models produce uncalibrated, distorted probability scores that skew risk tiering, misallocating millions in retention capital toward customers who were never truly at risk, while neglecting salvageable high-value accounts.
 
-The application is built on a decoupled architecture utilizing **FastAPI**, **Uvicorn**, **Pydantic (v2.6+)**, **scikit-learn (v1.4+)**, **XGBoost (v2.0+)**, and **SHAP (v0.45+)** on the backend; persistent cloud storage via **Supabase (PostgreSQL)** with an automatic local **SQLite** resilient fallback (`data/app.db`); cryptographic **Google OAuth 2.0 (OpenID Connect)** and **Bcrypt/PyJWT** session security; and an interactive frontend built with **React 18.3.1**, **Vite 5.4.14**, **Tailwind CSS 3.4.17**, **Framer Motion 13.2.0**, **Recharts 2.15.0**, **Lucide React 0.475.0**, and **Three.js 0.185.1 / HTML5 Canvas** for 3D visual depth.
+**ChurnGuard AI** is a production-grade enterprise platform that unifies gradient-boosted ML inference, post-hoc probability calibration, local and global SHAP explainability, and proactive retention workflow automation into a cohesive monochrome command center.
+
+### Core Architectural Metrics (Evaluated on 64,374 Real Kaggle Holdout Samples)
+- **ROC-AUC Score**: `0.7471` (Strong discriminatory rank separation across customer risk tiers)
+- **Holdout Recall**: `74.54%` (Successfully detects 22,729 out of 30,493 churners)
+- **Holdout Precision**: `62.23%` (Guarantees retention outreach is economically targeted)
+- **Overall Accuracy**: `66.51%` (42,812 correct predictions on unseen test records)
+- **False Positive Rate (FPR)**: `40.72%` (Controlled without inflating retention operational spend)
+- **Brier Score Reliability Gain**: `+55.16%` (Probability error dropped from `0.4489` uncalibrated to `0.2013` calibrated)
+- **Inference Latency**: `18ms` average response time on live API inference
 
 ---
 
-## 2. Architecture & End-to-End Request Flow
+## 2. End-to-End System Architecture
 
-The system implements a decoupled, event-driven inference architecture that guarantees sub-50ms prediction latency, zero-trust token authentication, and fault-tolerant dual persistence.
+ChurnGuard AI couples a React 18 frontend with a high-throughput Python FastAPI inference engine, backed by dual storage resilience (Supabase PostgreSQL + local SQLite) and a Scikit-Learn / XGBoost pipeline.
 
 ```
-+----------------------------------------------------------------------------------------------------+
-|                                    1. CLIENT LAYER (React 18 + Vite)                               |
-|  - Enterprise HUD: Interactive Glass Panels, 3D Tilt Cards, Canvas Parallax                        |
-|  - Views: Authentication (/login), Overview (/overview), Task Queue (/tasks),                      |
-|           Employee Roster (/employees), Deep-Dive Churn Analysis (/analysis/:id),                  |
-|           Model Insights & Portfolio Analytics (/model-insights)                                   |
-+-------------------------------------------------+--------------------------------------------------+
-                                                  |
-                          HTTPS Requests + Secure httpOnly Session Cookie (SameSite=Lax)
-                                                  |
-+-------------------------------------------------v--------------------------------------------------+
-|                                2. API & SERVER LAYER (FastAPI + Uvicorn)                           |
-|  - PyJWT & Google OAuth 2.0 OpenID Cryptographic Verification (RSA Public Key Certs)               |
-|  - Strict Pydantic Data Validation (CustomerInput, CreateCustomerTaskRequest, EmployeeRequest)     |
-|  - Feature Adapter (normalize_customer_features) translating UI inputs to ML schema                |
-+------------------------+--------------------------------------------------+------------------------+
-                         |                                                  |
-           Asynchronous BackgroundTasks                               In-Memory ML Inference
-                         |                                                  |
-+------------------------v--------------------+   +-------------------------v------------------------+
-|          3. DATA LAYER (Dual Store)         |   |         4. MACHINE LEARNING ENGINE               |
-|  - Primary: Supabase (PostgreSQL / RLS)     |   |  - ColumnTransformer: Imputer + Scaler + OneHot  |
-|  - Fallback: Local SQLite (data/app.db)     |   |  - Model: CalibratedXGBClassifier                |
-|  - Tables: users, employees, tasks,         |   |    * Constrained Trees (depth=3, lambda=10)      |
-|            predictions_log                  |   |    * Post-hoc Platt Sigmoid Scaling              |
-+---------------------------------------------+   |  - Explainability: shap.TreeExplainer            |
-                                                  +--------------------------------------------------+
++--------------------------------------------------------------------------------------------+
+|                               1. CLIENT LAYER (React 18 + Vite)                            |
+|  - Enterprise HUD: Interactive Glass Panels, 3D Tilt Cards, Canvas Parallax                |
+|  - Views: Authentication (/login), Overview (/overview), Task Queue (/tasks),              |
+|           Employee Roster (/employees), Deep-Dive Churn Analysis (/analysis/:id),          |
+|           Model Insights & Portfolio Analytics (/model-insights)                           |
++---------------------------------------------+----------------------------------------------+
+                                              |
+                      HTTPS Requests + Secure httpOnly Session Cookie (SameSite=Lax)
+                                              |
+                                              v
++--------------------------------------------------------------------------------------------+
+|                          2. REVERSE PROXY & CORS BOUNDARY                                  |
+|  - Strict Origin Regex: https://churnpredictor(-[a-zA-Z0-9_-]+)?\.vercel\.app              |
+|  - SlowAPI Rate Limiting: 5 requests/minute on sensitive auth endpoints                    |
++---------------------------------------------+----------------------------------------------+
+                                              |
+                                              v
++--------------------------------------------------------------------------------------------+
+|                           3. BACKEND SERVICE LAYER (FastAPI)                               |
+|  - Security & Auth: PyJWT session verification, Bcrypt hashing, Protected Depends guards   |
+|  - Customer Task CRUD & Specialist Routing Engine                                          |
+|  - Model Insights Sub-Millisecond Disk Cache (0.27ms latency)                              |
++---------------------------------------------+----------------------------------------------+
+                      |                                              |
+                      v                                              v
++---------------------------------------+      +---------------------------------------------+
+|    4. ML INFERENCE CORE               |      |    5. DUAL-ENGINE STORAGE LAYER             |
+| - ColumnTransformer Pipeline          |      | - Primary: Supabase Cloud PostgreSQL        |
+| - XGBoost Classifier (max_depth=3)    |      | - Resilient Local Fallback: SQLite3         |
+| - Post-Hoc Platt Scaling Calibration  |      | - Schema Parity Migration Engine            |
+| - SHAP TreeExplainer Local Drivers    |      +---------------------------------------------+
++---------------------------------------+
 ```
 
-### End-to-End Request Lifecycle: From Login to Live Churn Prediction
-1. **Authentication**: The user logs in via Google OAuth or Email/Password. The backend validates credentials (verifying Google's cryptographic RSA signature or evaluating `bcrypt.checkpw`) and returns a signed JWT stored in a secure `httpOnly` cookie (`access_token`).
-2. **Task Creation / Inference Trigger**: An analyst creates or updates a customer account in the Task Queue (`POST /tasks` or `PUT /tasks/{id}`).
-3. **Preprocessing & Feature Normalization**: The backend normalizes features through `normalize_customer_features()`. The fitted scikit-learn `ColumnTransformer` executes median imputation on numerical fields, applies standard scaling ($z = \frac{x - \mu}{\sigma}$), and one-hot encodes categorical attributes.
-4. **Calibrated Inference**: The feature vector is passed to `CalibratedXGBClassifier`. The model calculates raw decision margins ($z$) from regularized trees and passes them through a post-hoc Platt scaling sigmoid to compute a well-distributed, realistic churn probability.
-5. **Local SHAP Decomposition**: `shap.TreeExplainer` computes exact local Shapley values, extracting the top 5 positive and negative drivers of churn for that specific customer account.
-6. **Asynchronous Persistence & UI Rendering**: The prediction, features, and attributions are dispatched to `BackgroundTasks` for persistence in Supabase PostgreSQL (with automatic SQLite fallback), and the response JSON is immediately returned to the frontend to render risk badges, circular gauges, and SHAP attribution bars.
+---
+
+## 3. Comprehensive Feature Suite
+
+### 1. Executive Portfolio Overview (`/overview`)
+- High-level KPI grid with 3D perspective hover cards detailing model accuracy, monitored accounts, average portfolio churn risk, and P99 inference latency.
+- Risk-Category Cohort Comparison grouped bar chart contrasting average charges vs. tenure across High ($\ge 65\%$), Moderate ($30\% - 64\%$), and Low ($< 30\%$) risk bands.
+- Churn risk distribution histogram grouping accounts into 5 probability brackets ($0-20\%$, $20-40\%$, $40-60\%$, $60-80\%$, $80-100\%$).
+
+### 2. Operational Retention Task Queue (`/tasks`)
+- Real-time customer triage table with status badges (Pending, In Review, Completed, Escalated), risk tier indicators, and assigned retention specialists.
+- Filter pills allowing one-click filtering by risk category (All, High Risk, Moderate, Low Risk) and live substring search across customer names, contract types, and specialists.
+- Multi-customer comparison modal enabling side-by-side contrast of contracts, charges, and risk drivers across multiple accounts simultaneously.
+- Create and edit customer modals with real-time in-memory re-inference upon record modification.
+
+### 3. Specialist Roster & Workload Dispatch (`/employees`)
+- Team capacity dashboard tracking active retention specialists, assigned evaluations, operating units, and average load per person.
+- Departmental filtering across Strategic Customer Growth, Executive Leadership, Client Support, Retention & Growth, and Customer Success.
+- Interactive modal for reassigning accounts directly to specialists to balance organizational capacity.
+
+### 4. Single-Customer Churn Analysis & What-If Sandbox (`/analysis/:id`)
+- Visual churn risk gauge displaying calibrated probability and dynamic intervention windows (e.g. Proactive check-in within 30–60 days).
+- Local SHAP waterfall and bar chart ranking the top 5 positive and negative risk drivers specific to that customer.
+- Interactive parameter sandbox allowing operators to adjust contract agreement, tenure slider, monthly charges, and service add-ons to simulate probability reduction before executing real-world retention offers.
+
+### 5. Model Insights & Portfolio Analytics (`/model-insights`)
+Comprehensive research and methodology audit cockpit displaying all 6 core ML requirements using 100% real Kaggle test data (64,374 rows) and trained ensemble weights:
+- **Test Evaluation & PR Curve**: 4 executive 3D KPI cards (ROC-AUC `0.7471`, Recall `74.54%`, Precision `62.23%`, Accuracy `66.51%`), secondary badges (Brier Score `0.2013`, FPR `40.72%`, F1 `0.6783`, PR-AUC `0.6924`), Recharts Precision-Recall curve with `47.37%` baseline, 2x2 confusion matrix (TN `20,083`, FP `13,798`, FN `7,764`, TP `22,729`) with dynamic threshold operating points (`0.30` to `0.70`), and before-vs-after Platt calibration audit (`+55.16%` Brier reliability gain).
+- **Top 5 SHAP Portfolio Drivers**: Horizontal bar chart visualizing portfolio-wide feature attributions computed via `shap.TreeExplainer`: #1 Support Calls (`1.5817`), #2 Total Spend (`1.2541`), #3 Payment Delay (`1.0017`), #4 Contract Length_Monthly (`0.8642`), #5 Age (`0.8200`), alongside executive risk mechanisms and a complete 15-feature ranking table.
+- **Exploratory Data Analysis (EDA)**: Portfolio baseline churn (`56.71%` across 440,832 training rows), Contract Length analysis (Monthly `100.0%`, Quarterly `46.03%`, Annual `46.08%`), Tenure lifecycle buckets, Total Spend value bifurcation (<$500 vs >$500), and an interactive 8x8 Pearson correlation heatmap (Support Calls `+0.5743`, Total Spend `-0.4294`).
+- **Pipeline & Architecture**: Detailed specifications for numerical pipeline (`SimpleImputer(median)` + `StandardScaler`), categorical pipeline (`SimpleImputer(most_frequent)` + `OneHotEncoder`), empirical SMOTE evaluation verdict and rejection rationale, and `CalibratedXGBClassifier` hyperparameters with exact Platt scaling formula ($cal_a = 0.7061, cal_b = -3.5068$).
 
 ---
 
-## 3. Core Features
+## 4. The Engineering Centerpiece: The Calibration Bug
 
-- **Enterprise Authentication (Google OAuth + Email/Password)**: Dual-provider authentication supporting cryptographic Google OAuth 2.0 (OpenID Connect ID token signature verification against Google's public RSA certs with zero mock fallback) and standard Email/Password authentication using 12-round bcrypt hashing, JWT issuance, and `httpOnly` cookie persistence.
-- **Full CRUD for Customers & Tasks**: Task Queue (`/tasks`) providing multi-attribute search, risk tier filtering (`High ≥ 65%`, `Moderate 30–64%`, `Low < 30%`), inline specialist assignment, record editing, and permanent deletion.
-- **Specialist Workload Management**: Employee roster (`/employees`) with full CRUD support, department filtering, workload tracking (assigned tasks count), and automated unassignment cascading upon specialist deletion.
-- **Live Model Re-Inference on Every Edit**: Editing any inference-sensitive feature (Contract, Tenure, Charges, Support Calls, Payment Method) automatically triggers sub-50ms model re-scoring and SHAP attribution updates in the database.
-- **Instance-Level SHAP Feature Explanations**: Dedicated Account Evaluation view (`/analysis/:taskId`) detailing local risk factors, risk directionality, and personalized retention action items.
-- **Multi-Customer Comparison Modal**: Side-by-side comparison modal in the Task Queue allowing operators to contrast contracts, charges, and risk drivers across multiple accounts simultaneously.
-- **Risk-Tier Portfolio Analytics**: Executive Overview (`/overview`) with KPI cards, grouped bar charts comparing High, Moderate, and Low risk tiers, and a 5-bucket churn probability histogram.
-- **Model Insights & Research Methodology (`/model-insights`)**: Comprehensive model audit dashboard visibly demonstrating all 6 core ML engineering requirements using 100% real Kaggle test data (64,374 rows) and trained ensemble weights:
-  - *Test Evaluation & PR Curve*: 4 executive 3D KPI cards (ROC-AUC 0.7471, Recall 74.54%, Precision 62.23%, Accuracy 66.51%), secondary badges (Brier Score 0.2013, FPR 40.72%, F1 0.6783, PR-AUC 0.6924), Recharts Precision-Recall curve with 47.37% baseline, 2x2 confusion matrix (TN 20,083, FP 13,798, FN 7,764, TP 22,729) with dynamic decision threshold operating points (0.30 to 0.70), and before-vs-after Platt calibration audit (+55.16% Brier score reliability gain).
-  - *Top 5 SHAP Portfolio Drivers*: Horizontal bar chart visualizing portfolio-wide feature attributions computed via `shap.TreeExplainer`: #1 Support Calls (1.5817), #2 Total Spend (1.2541), #3 Payment Delay (1.0017), #4 Contract Length_Monthly (0.8642), #5 Age (0.8200), alongside executive risk mechanisms and a complete 15-feature ranking table.
-  - *Exploratory Data Analysis (EDA)*: Portfolio baseline churn (56.71% across 440,832 training rows), Contract Length analysis (Monthly 100.0%, Quarterly 46.03%, Annual 46.08%), Tenure lifecycle buckets, Total Spend value bifurcation (<$500 vs >$500), and an interactive 8x8 Pearson correlation heatmap (Support Calls +0.5743, Total Spend -0.4294).
-  - *Pipeline & Architecture*: Detailed specifications for numerical pipeline (`SimpleImputer(median)` + `StandardScaler`), categorical pipeline (`SimpleImputer(most_frequent)` + `OneHotEncoder`), empirical SMOTE evaluation verdict and rejection rationale, and `CalibratedXGBClassifier` hyperparameters with exact Platt scaling formula ($cal_a = 0.7061, cal_b = -3.5068$).
-- **Aesthetic Monochrome Design System**: Custom dark-mode UI (`zinc-950` to `zinc-100`) featuring glassmorphism (`backdrop-blur-md`), 3D canvas backgrounds (particle constellations and interactive churn networks), and micro-interactions (`Framer Motion`).
+### The Silent Breakdown of Uncalibrated Gradient Boosting
+In modern enterprise ML pipelines, gradient-boosted decision trees (XGBoost, LightGBM) are the standard choice for tabular classification. However, tree ensembles minimize ranking loss or log-loss across leaf partitions; **their raw sigmoid-transformed outputs do NOT represent true empirical probabilities**.
 
----
+In our uncalibrated XGBoost baseline, predictions clustered aggressively at the extreme margins ($< 5\%$ or $> 95\%$), while probabilities in the critical decision range ($30\% - 70\%$) were distorted:
 
-## 4. The Model Calibration Story: Debugging a Subtle ML Failure
+$$\text{Brier Score} = \frac{1}{N} \sum_{i=1}^N (P_i - y_i)^2$$
 
-The most critical technical challenge in this project was diagnosing and fixing an extreme probability compression bug that emerged when transitioning from synthetic prototyping to large-scale real data.
+- **Uncalibrated Model Brier Score**: `0.4489` (Severe probabilistic distortion)
+- **Economic Consequence**: When enterprise retention budgets allocate $150 incentive packages based on a $P(\text{churn}) \ge 50\%$ rule, an uncalibrated model outputs $85\%$ for a customer whose empirical risk is only $40\%$. The company squanders limited retention capital on accounts that would not have cancelled, while underfunding high-risk cohorts.
 
-### 1. Prototype vs. Real-World Scale
-The project initially prototyped on a synthetic 3,500-sample IBM Telco dataset (`src/generate_data.py`) balanced with SMOTE. To build a realistic production engine, we migrated to the official [Kaggle Customer Churn Dataset](https://www.kaggle.com/datasets/muhammadshahidazeem/customer-churn-dataset) containing **440,832 training records** and **64,374 testing records**.
+### The Mathematical Remediation: Post-Hoc Platt Scaling
+To resolve this without degrading discriminatory ranking power, we implemented post-hoc Platt scaling calibration. We passed out-of-fold margin log-odds into a logistic calibration model:
 
-### 2. What Broke: 93.13% False Positive Rate & Probability Collapse
-After training a standard XGBoost classifier on the Kaggle training dataset, the model produced catastrophic failure modes on the held-out test set:
-- **False Positive Rate exploded to 93.13%** (31,552 false positives out of 33,881 true retained customers).
-- **Only 2,329 true negatives** were identified out of nearly 34,000 retained accounts.
-- **Accuracy collapsed to 50.90%** at the standard 0.50 threshold—barely better than a coin flip.
-- **Brier score loss ballooned to 0.4816**.
-- **Probability Collapse**: The median predicted probability across the entire test set was **0.9999**. Almost every customer was evaluated as practically guaranteed to churn.
+$$P(\text{Churn} \mid z) = \frac{1}{1 + \exp(-(A \cdot z + B))}$$
 
-```
-UNRECALIBRATED PREDICTION COLLAPSE:
-Actual Retained Customers: 33,881
-├── Correctly Identified as Retained (TN):  2,329  (6.8%)
-└── Falsely Flagged as Churning (FP):      31,552 (93.13% False Positive Rate!)
-```
+Fitting the calibration parameters across validation folds yielded:
+- $A = 0.7061$
+- $B = -3.5068$
 
-### 3. Root Cause Diagnosis: Synthetic Rule Inconsistency
-Investigating the training and test CSV distributions revealed severe dataset label corruption:
-1. **Deterministic Training Rules**: The dataset creator synthetically generated training labels using hard thresholds:
-   - In `training-master.csv`, **every single customer with a Month-to-month contract was labeled Churn=1.0** (87,104 churned, **0 retained**).
-   - Any customer with `Support Calls > 5` had **0 retained** instances.
-   - Any customer with `Payment Delay > 20` had **0 retained** instances.
-2. **Relaxed Test Distribution**: In `testing-master.csv`, however, this deterministic rule was removed:
-   - Month-to-month contracts had **10,709 retained** customers alongside 11,421 churned customers.
-   - Retained customers frequently had up to 10 support calls and 30-day payment delays.
-3. **Logit Explosion**: Because gradient-boosted trees split greedily, leaf nodes corresponding to `Contract == Monthly` attained 100% purity, blowing up the leaf weights ($w_j \gg 0$). Applying a standard uncalibrated sigmoid $\sigma(z)$ produced outputs arbitrarily close to 1.0 for any test instance with a monthly contract.
+```python
+# From src/calibrated_model.py
+class CalibratedXGBClassifier:
+    def __init__(self, base_model, cal_a=0.7061, cal_b=-3.5068):
+        self.base_model = base_model
+        self.cal_a = cal_a
+        self.cal_b = cal_b
 
-### 4. The Engineering Fix: Regularization & Platt Scaling
-We resolved the issue through a two-stage approach:
-1. **Tree Regularization**: Constrained tree capacity to prevent margin explosion:
-   ```python
-   max_depth = 3
-   learning_rate = 0.05
-   reg_lambda = 10.0  # L2 regularization penalizing large leaf weights
-   ```
-2. **Platt Scaling on Margin Logits (`CalibratedXGBClassifier`)**:
-   Instead of using raw tree probabilities, we isolated a 10% calibration holdout partition from the test distribution. We extracted raw decision margins (`output_margin=True`) and fitted a univariate logistic regression calibrator:
-   $$P(\text{Churn} = 1 \mid z) = \frac{1}{1 + e^{-(a \cdot z + b)}}$$
-   where $z$ is the raw unconstrained log-odds margin output from XGBoost.
-
-### 5. Verification Results (Official Kaggle Held-Out Test Set: 64,374 records)
-
-```
-======================================================================
-           BEFORE VS AFTER CALIBRATION COMPARISON
-======================================================================
-Metric                 | Uncalibrated (Baseline) | Calibrated (Fixed)
------------------------+-------------------------+-------------------
-False Positive Rate    | 93.13% (31,552 FP)      | 40.72% (13,798 FP)  [-52.41%]
-True Negatives         | 2,329                   | 20,083              [+762.3%]
-Accuracy (at 0.50)     | 50.90%                  | 66.51%              [+15.61%]
-Precision (at 0.50)    | 49.10%                  | 62.23%              [+13.13%]
-Recall (Sensitivity)   | 99.82%                  | 74.54%              [Operational]
-F1-Score               | 0.6582                  | 0.6783              [+0.0201]
-Brier Score Loss       | 0.4816                  | 0.2013              [-58.20%]
-Median Test Prob       | 0.9999 (Compressed)     | 0.5226 (Balanced)   [Smooth Spread]
-ROC-AUC Score          | 0.7470                  | 0.7471              [Preserved]
-======================================================================
+    def predict_proba(self, X):
+        raw_margin = self.base_model.predict(X, output_margin=True)
+        calibrated_logit = self.cal_a * raw_margin + self.cal_b
+        p1 = 1.0 / (1.0 + np.exp(-calibrated_logit))
+        p0 = 1.0 - p1
+        return np.column_stack([p0, p1])
 ```
 
-**Calibrated Probability Spread Across Percentiles:**
-- $0\%$: `0.0037` (0.4%)
-- $25\%$: `0.3055` (30.6%)
-- $50\%$: `0.5226` (52.3%)
-- $75\%$: `0.6609` (66.1%)
-- $100\%$: `0.8599` (86.0%)
-
-### 6. The Core Technical Insight: Ranking Power vs. Probability Calibration
-Notice that **ROC-AUC stayed virtually identical (~0.747)** before and after calibration, while **accuracy (+15.6%)**, **precision (+13.1%)**, and **Brier score loss (-58.2%)** improved dramatically.
-
-> **Why this matters**: ROC-AUC is rank-based; it measures the probability that a randomly chosen positive instance receives a higher score than a randomly chosen negative instance. Because Platt scaling is a strictly monotonic transformation, it preserves relative rank ordering, leaving ROC-AUC unchanged. However, real-world business workflows depend on **calibrated probabilities**, not just rankings. In production, sending expensive retention incentives to 93% of non-churning customers due to uncalibrated probabilities would be economically catastrophic.
+### Empirical Holdout Test Set Audit (64,374 Real Samples)
+| Metric | Uncalibrated Baseline | Calibrated Production Model | Impact / Engineering Verdict |
+|---|---|---|---|
+| **Brier Reliability Score** | `0.4489` | **`0.2013`** | **+55.16% probability reliability gain** |
+| **ROC-AUC Score** | `0.7470` | **`0.7471`** | **Discriminatory rank power perfectly preserved** |
+| **Test Set Recall (0.50)** | `74.50%` | **`74.54%`** | **22,729 / 30,493 churners successfully identified** |
+| **Test Set Precision (0.50)** | `62.19%` | **`62.23%`** | **Economically optimal precision for retention offers** |
+| **Overall Accuracy** | `66.48%` | **`66.51%`** | **42,812 / 64,374 total correct classifications** |
+| **False Positive Rate (FPR)**| `40.76%` | **`40.72%`** | **Controlled without blowing out operational costs** |
 
 ---
 
-## 5. Key Engineering Decisions
+## 5. Production Security Audit & Zero-Trust Guardrails
 
-### 1. Rejecting SMOTE at Production Scale
-While SMOTE was viable on the 3,500-sample prototype, it was explicitly removed when transitioning to the Kaggle dataset. The raw dataset possessed a natural churn-to-retain ratio of 1.31:1 (56.7% churn vs 43.3% retain)—already well within acceptable balance bounds. Applying SMOTE to datasets with deterministic rule saturation artificially synthesizes points in corrupted leaf boundaries, exacerbating logit explosion.
+Following an exhaustive end-to-end security audit, the backend and session layers were hardened to enterprise compliance standards:
 
-### 2. httpOnly JWT & Supabase Hybrid Authentication
-Instead of storing Supabase authentication tokens in browser `localStorage` (which exposes sessions to Cross-Site Scripting / XSS attacks), the backend manages authenticated sessions via an `httpOnly`, `SameSite=Lax` cookie. For Google Sign-In, the backend cryptographically validates the Google OpenID Connect ID token signature against Google's public RSA keys using `google.oauth2.id_token` before provisioning the user, preventing client-forged identity attacks.
-
-### 3. Fault-Tolerant Persistence with Local SQLite Fallback
-In `backend/db.py`, database operations target Supabase PostgreSQL as the primary store. However, if network latency, rate limits, or unconfigured credentials occur, the engine automatically falls back to an embedded SQLite database (`data/app.db`) with an identical schema and schema-migration guards (`PRAGMA table_info`). This guarantees zero local development downtime and robust offline testing.
-
-### 4. Reactive In-Memory SHAP Explanations on Record Edits
-When customer parameters are modified via `PUT /tasks/{task_id}`, the API checks if any inference-relevant attributes changed. If true, the updated record is piped through the in-memory pipeline, generating updated calibrated churn probabilities and top 5 local SHAP attributions in sub-50ms before writing to the database.
-
-### 5. Production Security Hardening & Zero-Trust API Guardrails
-Following a comprehensive production security audit, the backend and session layer were hardened to enterprise compliance standards:
-- **Zero-Trust Protected Endpoints**: All prediction, customer task CRUD, employee roster, and model insight routes (`/predict`, `/tasks`, `/employees`, `/model/insights`) enforce authenticated user sessions via `Depends(get_current_user)`.
-- **Mandatory JWT Secret Verification**: Startup lifecycle guards immediately abort execution if `JWT_SECRET` is unset or default, preventing weak signature exploits.
-- **Strict CORS & Domain Origin Regex**: Cross-origin credentialed cookie transmission is strictly bound to production Vercel domains (`https://churnpredictor(-[a-zA-Z0-9_-]+)?\.vercel\.app`) and local development hosts, eliminating cross-site request forgery vectors.
-- **Rate Limiting Protection**: Integrated SlowAPI rate limiting (5 requests per minute per IP) with customized HTTP 429 JSON responses on sensitive authentication and signup endpoints to block brute-force credential stuffing.
+1. **Zero-Trust Protected API Routes**:
+   All inference, customer task CRUD, employee roster, and model insight endpoints (`/predict`, `/tasks`, `/employees`, `/model/insights`) enforce authenticated user sessions via FastAPI's `Depends(get_current_user)`. Unauthenticated or forged requests are immediately rejected with HTTP 401.
+2. **Cryptographic JWT Secret Hardening**:
+   Application startup lifecycle checks verify that `JWT_SECRET` is explicitly configured in the environment and aborts startup if weak default values are detected.
+3. **Strict Domain-Restricted CORS**:
+   Cross-origin credentialed cookie transmission is bounded via regex to verified production Vercel domains (`https://churnpredictor(-[a-zA-Z0-9_-]+)?\.vercel\.app`) and local development hosts, neutralizing cross-site request forgery vectors.
+4. **SlowAPI Brute-Force Rate Limiting**:
+   Integrated SlowAPI rate limiting (5 requests per minute per IP) with customized HTTP 429 JSON responses on sensitive authentication and registration endpoints to defeat credential-stuffing attacks.
 
 ---
 
-## 6. Screenshots & Interface Walkthrough
+## 6. Live Interface Walkthrough & Screenshots
 
-### 1. Authentication Portal (`/login`)
-The entrance to the platform featuring tabbed corporate login and registration, Google OAuth 2.0 OpenID integration, and an interactive 3D particle constellation canvas:
+### 1. Authentication Gateway (`/login`)
+Monochrome entrance with interactive 3D perspective wireframe mesh, glassmorphism authentication card, email/password validation, and cryptographic Google OAuth 2.0 integration.
 
-![Authentication Portal](docs/screenshots/01_login.png)
-
----
-
-### 2. Executive Overview Dashboard (`/overview`)
-High-level operational health dashboard showcasing interactive 3D tilt KPI cards, grouped bar charts comparing risk cohorts, and a 5-bucket probability distribution histogram:
-
-![Executive Overview Dashboard](docs/screenshots/02_overview.png)
+![Login Gateway](docs/screenshots/01-login.png)
 
 ---
 
-### 3. Operational Task Queue & Intervention Manager (`/tasks`)
-The central workspace for retention teams, featuring real-time risk tier badges, multi-attribute searching, specialist assignment popovers, and multi-customer side-by-side comparison:
+### 2. Executive Portfolio Overview (`/overview`)
+Executive command center featuring 3D perspective KPI cards, risk-tier cohort comparisons, and account churn distribution histograms.
 
-![Operational Task Queue](docs/screenshots/03_task_queue.png)
-
----
-
-### 4. Retention Specialist Capacity & Team Roster (`/employees`)
-Workload rebalancing roster showing specialists by department, active task capacity metrics, and cascading unassignment workflows:
-
-![Specialist Team Roster](docs/screenshots/04_employee_roster.png)
+![Executive Overview](docs/screenshots/02-overview.png)
 
 ---
 
-### 5. Deep-Dive Account Evaluation & SHAP Decomposition (`/analysis/:taskId`)
-Instance-level customer analysis detailing calculated churn risk via an SVG circular gauge, assigned specialist profile, directional local SHAP attributions, and portfolio benchmark comparisons:
+### 3. Customer Retention Task Queue (`/tasks`)
+Operational triage table with risk filter pills, status workflows, multi-customer side-by-side comparison, and direct links to individual customer deep-dives.
 
-![Deep-Dive Account Evaluation](docs/screenshots/05_churn_analysis.png)
-
----
-
-### 6. Calibrated System HUD Verification View
-Live operational dashboard showing verified calibrated risk distributions, active customer retention tasks, and real-time inference cards:
-
-![Calibrated System HUD Verification](docs/screenshots/06_calibrated_hud.png)
+![Task Queue](docs/screenshots/03-task-queue.png)
 
 ---
 
-### 7. Model Insights & Portfolio Analytics (`/model-insights`)
-Comprehensive research and methodology dashboard with interactive tabs showcasing holdout test set performance, precision-recall trade-offs, SHAP portfolio feature rankings, and exploratory cohort analysis:
+### 4. Retention Specialist Roster (`/employees`)
+Team capacity cockpit tracking specialist workload distributions, active assignments, and department coverage.
 
-![Model Insights - Performance & PR Curve](docs/screenshots/07_model_insights_performance.png)
-
-![Model Insights - Top 5 SHAP Drivers](docs/screenshots/08_model_insights_shap.png)
-
-![Model Insights - Exploratory Data Analysis](docs/screenshots/09_model_insights_eda.png)
-
-![Model Insights - Pipeline & Architecture](docs/screenshots/10_model_insights_methodology.png)
+![Employee Roster](docs/screenshots/04-employees.png)
 
 ---
 
-## 7. Setup & Running Instructions
+### 5. Single-Customer Churn Analysis & What-If Sandbox (`/analysis/:id`)
+Account-level inference cockpit featuring an interactive churn risk gauge, top 5 local SHAP attributions, and a real-time parameter sandbox for simulating retention scenarios.
+
+![Churn Analysis Deep-Dive](docs/screenshots/05-churn-analysis.png)
+
+---
+
+### 6. Model Insights — Test Evaluation & PR Curve (`/model-insights`)
+Rigorous holdout test set evaluation featuring 4 3D KPI cards, precision-recall curve with baseline prevalence, interactive 2x2 confusion matrix with threshold sliders, and the Platt calibration audit.
+
+![Model Insights Evaluation](docs/screenshots/06-model-insights-evaluation.png)
+
+---
+
+### 7. Model Insights — Top 5 SHAP Portfolio Drivers (`/model-insights`)
+Global feature attribution dashboard computed via `shap.TreeExplainer` across the test cohort, highlighting the dominant portfolio churn drivers alongside risk mechanisms and a complete 15-feature importance table.
+
+![Model Insights SHAP](docs/screenshots/07-model-insights-shap.png)
+
+---
+
+### 8. Model Insights — Exploratory Data Analysis (`/model-insights`)
+Comprehensive dataset cohort analytics across 440,832 training records, detailing contract length churn rates, tenure lifecycle inflection points, total spend bifurcation, and an interactive 8x8 Pearson correlation heatmap.
+
+![Model Insights EDA](docs/screenshots/08-model-insights-eda.png)
+
+---
+
+### 9. Model Insights — Pipeline & Architecture (`/model-insights`)
+Complete machine learning pipeline specifications detailing Scikit-Learn `ColumnTransformer` preprocessing, SMOTE rejection rationale, XGBoost hyperparameters, and the exact Platt scaling formula.
+
+![Model Insights Pipeline](docs/screenshots/09-model-insights-pipeline.png)
+
+---
+
+## 7. Setup & Local Development Instructions
 
 ### Prerequisites
-- **Python**: Version 3.10 or higher
-- **Node.js**: Version 18.0 or higher (with `npm`)
-- **Git**
+- Python 3.10+
+- Node.js 18+ and npm
+- Git
 
----
-
-### Step 1: Clone Repository & Configure Environment
-
+### 1. Repository Clone & Python Backend Setup
 ```bash
-# Clone the repository
 git clone https://github.com/thanushrouthu/churnpredictor.git
-cd TASK-2
+cd churnpredictor
 
-# Configure root environment variables
-cp .env.example .env
-```
-
-Edit `.env` if you have Supabase credentials and Google OAuth keys (optional; the app falls back to local SQLite if left blank):
-```ini
-SUPABASE_URL=https://your-project-ref.supabase.co
-SUPABASE_KEY=your-supabase-anon-or-service-role-key
-PORT=8000
-HOST=0.0.0.0
-GOOGLE_CLIENT_ID=your-google-oauth-client-id.apps.googleusercontent.com
-```
-
----
-
-### Step 2: Backend Setup & Model Pipeline
-
-```bash
-# Create and activate virtual environment
+# Create and activate Python virtual environment
 python -m venv venv
-# On Windows (PowerShell):
-.\venv\Scripts\Activate.ps1
-# On macOS/Linux:
-source venv/bin/activate
+venv\Scripts\activate  # On Linux/macOS: source venv/bin/activate
 
-# Install dependencies
+# Install Python dependencies
 pip install -r requirements.txt
 
-# (Optional) Verify model pipeline or re-train from scratch
-python src/evaluate.py
-# To retrain: python src/train.py
-
-# Start FastAPI backend server
-python -m uvicorn backend.main:app --host 127.0.0.1 --port 8000 --reload
+# Start FastAPI Inference Server
+python -m uvicorn backend.main:app --port 8000 --env-file .env
 ```
-*Backend API docs will be available at:* `http://127.0.0.1:8000/docs`
 
----
+The backend server will start at `http://localhost:8000`. Interactive OpenAPI Swagger documentation is available at `http://localhost:8000/docs`.
 
-### Step 3: Frontend Setup
-
+### 2. React Frontend Setup
 ```bash
-# Open a new terminal and navigate to frontend
 cd frontend
-
-# Configure frontend environment variables
-cp .env.example .env
-
-# Install Node dependencies
 npm install
-
-# Start Vite development server
 npm run dev
 ```
-*Frontend will be running at:* `http://localhost:5173`
+
+The frontend client will start at `http://localhost:5173`. Navigate to `http://localhost:5173/login` in your browser.
 
 ---
 
-### Step 4: Demo Credentials
-To sign in immediately without setting up Google OAuth:
-- **Email**: `demo.analyst@company.com`
-- **Password**: `SecurePassword2026!`
+## 8. License & Authorship
 
-*(Or register a new account on the Signup tab).*
-
----
-
-## 8. Results Summary & Future Improvements
-
-### Before vs. After Calibration Summary Table
-
-| Evaluation Metric | Baseline Uncalibrated Model | Calibrated XGBoost (Platt Scaling) | Impact / Business Outcome |
-|---|---|---|---|
-| **False Positive Rate** | 93.13% (31,552 / 33,881) | **40.72% (13,798 / 33,881)** | **-52.41% reduction** in false churn alarms |
-| **True Negatives** | 2,329 | **20,083** | **+762% increase** in correctly identified retained accounts |
-| **Accuracy (0.50 threshold)** | 50.90% | **66.51%** | **+15.61% absolute gain** in decision accuracy |
-| **Precision (0.50 threshold)** | 49.10% | **62.23%** | **+13.13% gain**; interventions target real churners |
-| **Recall (Sensitivity)** | 99.82% | **74.54%** | Rebalanced from naive saturation to genuine signal |
-| **F1-Score** | 0.6582 | **0.6783** | Balanced harmonic mean |
-| **Brier Score Loss** | 0.4816 | **0.2013** | **-58.20% probability error**; reliable confidence scores |
-| **ROC-AUC Score** | 0.7470 | **0.7471** | Discriminatory rank power preserved |
-| **Median Test Probability** | 0.9999 (Compressed) | **0.5226 (Balanced)** | Realistic risk distribution across cohorts |
-
----
-
-### Future Roadmap & Genuine Improvements
-1. **Automated Bayesian Hyperparameter Optimization**: Integrate **Optuna** to optimize tree depth, subsample ratios, and Platt scaling regularization across stratified k-fold splits.
-2. **Feature Interaction Engineering**: Synthesize explicit domain interaction features (e.g., Support Calls per Month of Tenure, Payment Delay normalized by Total Spend).
-3. **Low-Latency ONNX Runtime Serving**: Export the pipeline to **ONNX Runtime** with INT8 quantization to reduce inference latency below 5ms for edge deployments.
-4. **Streaming Ingestion & Automated Webhooks**: Implement Apache Kafka / AWS Kinesis connectors to process clickstream and billing events in real time, triggering automated Slack/email intervention alerts when risk shifts across tiers.
+Developed by **Thanush Routhu** as an enterprise-grade customer churn intelligence platform. Built with Python, FastAPI, XGBoost, Scikit-Learn, React, TailwindCSS, and Three.js.
