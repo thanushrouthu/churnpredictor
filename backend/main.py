@@ -59,7 +59,13 @@ from src.calibrated_model import CalibratedXGBClassifier
 
 
 # Security Configuration
-JWT_SECRET = os.getenv("JWT_SECRET", "churn-predictor-secure-jwt-secret-key-2026-prod")
+JWT_SECRET = os.getenv("JWT_SECRET", "").strip()
+if not JWT_SECRET:
+    raise RuntimeError(
+        "CRITICAL SECURITY ERROR: 'JWT_SECRET' environment variable is not set. "
+        "A strong, non-guessable secret key is required for signing session tokens. "
+        "Set JWT_SECRET in your environment variables (generate one via python -c 'import secrets; print(secrets.token_urlsafe(32))')."
+    )
 JWT_ALGORITHM = "HS256"
 JWT_EXPIRE_HOURS = 24
 GOOGLE_CLIENT_ID = os.getenv("GOOGLE_CLIENT_ID", "").strip()
