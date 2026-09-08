@@ -129,10 +129,13 @@ ALLOWED_ORIGINS = list(dict.fromkeys([
     "http://127.0.0.1:3000",
 ] + parsed_origins))
 
+# Strict origin regex allowing ONLY churnpredictor Vercel deployments (production & branch previews)
+ALLOWED_ORIGIN_REGEX = r"^https://churnpredictor(-[a-zA-Z0-9_-]+)?\.vercel\.app$"
+
 app.add_middleware(
     CORSMiddleware,
     allow_origins=ALLOWED_ORIGINS,
-    allow_origin_regex=r"^https?://.*$",
+    allow_origin_regex=ALLOWED_ORIGIN_REGEX,
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],
