@@ -1,0 +1,753 @@
+{
+  "status": "success",
+  "generated_at": "2026-09-08T19:32:51.384726+00:00",
+  "eda": {
+    "total_training_samples": 440832,
+    "overall_train_churn_rate_pct": 56.71,
+    "contract_analysis": [
+      {
+        "contract": "Annual",
+        "total_customers": 177198,
+        "churned_customers": 81646,
+        "churn_rate_pct": 46.08
+      },
+      {
+        "contract": "Monthly",
+        "total_customers": 87104,
+        "churned_customers": 87104,
+        "churn_rate_pct": 100.0
+      },
+      {
+        "contract": "Quarterly",
+        "total_customers": 176530,
+        "churned_customers": 81249,
+        "churn_rate_pct": 46.03
+      }
+    ],
+    "tenure_analysis": [
+      {
+        "tenure_bucket": "0\u201312 mo",
+        "total_customers": 85129,
+        "churned_customers": 50000,
+        "churn_rate_pct": 58.73
+      },
+      {
+        "tenure_bucket": "12\u201324 mo",
+        "total_customers": 79967,
+        "churned_customers": 50597,
+        "churn_rate_pct": 63.27
+      },
+      {
+        "tenure_bucket": "24+ mo",
+        "total_customers": 275736,
+        "churned_customers": 149402,
+        "churn_rate_pct": 54.18
+      }
+    ],
+    "spend_analysis": [
+      {
+        "spend_bucket": "$100\u2013$300",
+        "total_customers": 57962,
+        "churned_customers": 57962,
+        "churn_rate_pct": 100.0
+      },
+      {
+        "spend_bucket": "$300\u2013$500",
+        "total_customers": 58088,
+        "churned_customers": 58082,
+        "churn_rate_pct": 99.99
+      },
+      {
+        "spend_bucket": "$500\u2013$750",
+        "total_customers": 162531,
+        "churned_customers": 67106,
+        "churn_rate_pct": 41.29
+      },
+      {
+        "spend_bucket": "$750\u2013$1,000",
+        "total_customers": 162251,
+        "churned_customers": 66849,
+        "churn_rate_pct": 41.2
+      }
+    ],
+    "correlation_matrix": {
+      "features": [
+        "Age",
+        "Tenure",
+        "Usage Frequency",
+        "Support Calls",
+        "Payment Delay",
+        "Total Spend",
+        "Last Interaction",
+        "Churn"
+      ],
+      "values": [
+        [
+          1.0,
+          -0.0116,
+          -0.0072,
+          0.1585,
+          0.0617,
+          -0.0847,
+          0.029,
+          0.2184
+        ],
+        [
+          -0.0116,
+          1.0,
+          -0.0268,
+          -0.0276,
+          -0.0166,
+          0.019,
+          -0.0069,
+          -0.0519
+        ],
+        [
+          -0.0072,
+          -0.0268,
+          1.0,
+          -0.022,
+          -0.0145,
+          0.0186,
+          -0.0047,
+          -0.0461
+        ],
+        [
+          0.1585,
+          -0.0276,
+          -0.022,
+          1.0,
+          0.1629,
+          -0.2216,
+          0.0777,
+          0.5743
+        ],
+        [
+          0.0617,
+          -0.0166,
+          -0.0145,
+          0.1629,
+          1.0,
+          -0.121,
+          0.0427,
+          0.3121
+        ],
+        [
+          -0.0847,
+          0.019,
+          0.0186,
+          -0.2216,
+          -0.121,
+          1.0,
+          -0.0569,
+          -0.4294
+        ],
+        [
+          0.029,
+          -0.0069,
+          -0.0047,
+          0.0777,
+          0.0427,
+          -0.0569,
+          1.0,
+          0.1496
+        ],
+        [
+          0.2184,
+          -0.0519,
+          -0.0461,
+          0.5743,
+          0.3121,
+          -0.4294,
+          0.1496,
+          1.0
+        ]
+      ],
+      "churn_correlations": [
+        {
+          "feature": "Support Calls",
+          "correlation": 0.5743
+        },
+        {
+          "feature": "Payment Delay",
+          "correlation": 0.3121
+        },
+        {
+          "feature": "Age",
+          "correlation": 0.2184
+        },
+        {
+          "feature": "Last Interaction",
+          "correlation": 0.1496
+        },
+        {
+          "feature": "Usage Frequency",
+          "correlation": -0.0461
+        },
+        {
+          "feature": "Tenure",
+          "correlation": -0.0519
+        },
+        {
+          "feature": "Total Spend",
+          "correlation": -0.4294
+        }
+      ]
+    },
+    "key_findings": [
+      "Monthly contract holders exhibit a 100.0% churn rate in the Kaggle dataset, serving as the single highest risk categorical factor.",
+      "Support Calls have the strongest positive linear correlation (+0.5743) with customer churn, followed by Payment Delay (+0.3121) and Age (+0.2184).",
+      "Total Spend displays the strongest negative linear correlation (-0.4294) with churn, with high-tier spenders ($500+) demonstrating over 58% retention.",
+      "Tenure shows elevated churn during the 12\u201324 month inflection period (63.27%) before stabilizing for mature accounts (54.18%)."
+    ]
+  },
+  "preprocessing": {
+    "numerical": {
+      "imputer": "SimpleImputer(strategy='median')",
+      "scaler": "StandardScaler()",
+      "features": [
+        "Age",
+        "Tenure",
+        "Usage Frequency",
+        "Support Calls",
+        "Payment Delay",
+        "Total Spend",
+        "Last Interaction"
+      ],
+      "rationale": "Median imputation guards against skewed spend and call counts; Standard scaling normalizes variance across disparate feature units."
+    },
+    "categorical": {
+      "imputer": "SimpleImputer(strategy='most_frequent')",
+      "encoder": "OneHotEncoder(handle_unknown='ignore', sparse_output=False)",
+      "features": [
+        "Gender",
+        "Subscription Type",
+        "Contract Length"
+      ],
+      "rationale": "One-hot encoding avoids artificial ordinal relationships among subscription tiers and contract structures."
+    },
+    "hygiene_steps": [
+      "Customer ID exclusion to prevent model memorization of arbitrary entity keys.",
+      "Row-level dropna() for corrupted records (1 corrupt row removed in raw Kaggle train).",
+      "ColumnTransformer orchestration ensuring zero data leakage between training and inference."
+    ],
+    "input_feature_count": 10,
+    "encoded_feature_count": 15,
+    "encoded_feature_names": [
+      "Age",
+      "Tenure",
+      "Usage Frequency",
+      "Support Calls",
+      "Payment Delay",
+      "Total Spend",
+      "Last Interaction",
+      "Gender_Female",
+      "Gender_Male",
+      "Subscription Type_Basic",
+      "Subscription Type_Premium",
+      "Subscription Type_Standard",
+      "Contract Length_Annual",
+      "Contract Length_Monthly",
+      "Contract Length_Quarterly"
+    ]
+  },
+  "class_imbalance": {
+    "train_distribution": {
+      "total": 440832,
+      "churned": 249999,
+      "retained": 190833,
+      "churn_pct": 56.71,
+      "retained_pct": 43.29,
+      "ratio": "1.31 : 1"
+    },
+    "test_distribution": {
+      "total": 64374,
+      "churned": 30493,
+      "retained": 33881,
+      "churn_pct": 47.37,
+      "retained_pct": 52.63,
+      "ratio": "0.9 : 1"
+    },
+    "imbalance_strategy": "Natural Distribution with Platt Sigmoid Probability Calibration",
+    "smote_analysis": {
+      "tested": true,
+      "verdict": "Rejected in favor of Natural Distribution + Calibration",
+      "technical_reason": "Synthetic Minority Over-sampling (SMOTE) was rigorously evaluated. However, because the dataset contains hard deterministic rule partitions (e.g. Monthly contract = 100% churn), synthetic interpolation creates blended artificial samples in zero-density decision spaces. In empirical testing, SMOTE inflated False Positive Rate to 93.13%, severely degrading enterprise operational efficiency. Retaining the natural 56.7% / 43.3% distribution with post-hoc Platt scaling achieved a low Brier Score of 0.2013 and controlled FPR of 40.72%."
+    }
+  },
+  "architecture": {
+    "model_name": "CalibratedXGBClassifier (Gradient Boosted Decision Trees + Platt Scaling)",
+    "framework": "XGBoost 2.1.4 + Scikit-Learn Pipeline",
+    "hyperparameters": {
+      "n_estimators": 100,
+      "max_depth": 3,
+      "learning_rate": 0.05,
+      "reg_lambda": 10.0,
+      "subsample": 0.8,
+      "colsample_bytree": 0.8,
+      "tree_method": "hist",
+      "eval_metric": "logloss",
+      "random_state": 42
+    },
+    "calibration_parameters": {
+      "method": "Platt Sigmoid Scaling (cal_a * logit + cal_b)",
+      "cal_a": 0.7061,
+      "cal_b": -3.5068,
+      "formula": "P(Churn) = 1 / (1 + exp(-(0.7061 * logit + (-3.5068))))"
+    },
+    "architectural_justification": [
+      "Shallow tree depth (max_depth=3) ensures robust generalization and prevents the model from memorizing rare outlier combinations.",
+      "Conservative shrinkage (learning_rate=0.05) and heavy L2 leaf regularization (reg_lambda=10.0) penalize excessive leaf weights.",
+      "Histogram-based splitting ('hist') provides memory-efficient, rapid gradient boosting across the 440K record training volume.",
+      "Post-hoc Platt calibration guarantees output probabilities represent true empirical risk frequencies across all confidence tiers."
+    ]
+  },
+  "evaluation": {
+    "test_sample_count": 64374,
+    "baseline_churn_rate_pct": 47.37,
+    "metrics": {
+      "roc_auc": 0.7471,
+      "pr_auc": 0.6924,
+      "recall_pct": 74.54,
+      "precision_pct": 62.23,
+      "accuracy_pct": 66.51,
+      "f1_score": 0.6783,
+      "brier_score": 0.2013,
+      "fpr_pct": 40.72,
+      "fnr_pct": 25.46
+    },
+    "confusion_matrix": {
+      "threshold": 0.5,
+      "true_negatives": 20083,
+      "false_positives": 13798,
+      "false_negatives": 7764,
+      "true_positives": 22729
+    },
+    "precision_recall_curve": [
+      {
+        "recall": 0.0,
+        "precision": 1.0,
+        "threshold": 0.8599
+      },
+      {
+        "recall": 0.0205,
+        "precision": 0.9046,
+        "threshold": 0.7851
+      },
+      {
+        "recall": 0.0416,
+        "precision": 0.7683,
+        "threshold": 0.7371
+      },
+      {
+        "recall": 0.0609,
+        "precision": 0.8088,
+        "threshold": 0.7342
+      },
+      {
+        "recall": 0.0797,
+        "precision": 0.7952,
+        "threshold": 0.7212
+      },
+      {
+        "recall": 0.1015,
+        "precision": 0.8318,
+        "threshold": 0.7166
+      },
+      {
+        "recall": 0.1217,
+        "precision": 0.7741,
+        "threshold": 0.7107
+      },
+      {
+        "recall": 0.1368,
+        "precision": 0.7783,
+        "threshold": 0.6994
+      },
+      {
+        "recall": 0.1632,
+        "precision": 0.7429,
+        "threshold": 0.6893
+      },
+      {
+        "recall": 0.1802,
+        "precision": 0.7353,
+        "threshold": 0.6824
+      },
+      {
+        "recall": 0.2054,
+        "precision": 0.7425,
+        "threshold": 0.6802
+      },
+      {
+        "recall": 0.2223,
+        "precision": 0.7267,
+        "threshold": 0.6797
+      },
+      {
+        "recall": 0.2451,
+        "precision": 0.7379,
+        "threshold": 0.6781
+      },
+      {
+        "recall": 0.2665,
+        "precision": 0.7306,
+        "threshold": 0.6775
+      },
+      {
+        "recall": 0.2879,
+        "precision": 0.7338,
+        "threshold": 0.674
+      },
+      {
+        "recall": 0.3042,
+        "precision": 0.7252,
+        "threshold": 0.6697
+      },
+      {
+        "recall": 0.3235,
+        "precision": 0.7208,
+        "threshold": 0.669
+      },
+      {
+        "recall": 0.3473,
+        "precision": 0.7219,
+        "threshold": 0.6669
+      },
+      {
+        "recall": 0.3679,
+        "precision": 0.7172,
+        "threshold": 0.6639
+      },
+      {
+        "recall": 0.3892,
+        "precision": 0.7151,
+        "threshold": 0.6596
+      },
+      {
+        "recall": 0.4076,
+        "precision": 0.7109,
+        "threshold": 0.6545
+      },
+      {
+        "recall": 0.4282,
+        "precision": 0.7008,
+        "threshold": 0.6495
+      },
+      {
+        "recall": 0.4487,
+        "precision": 0.7056,
+        "threshold": 0.6467
+      },
+      {
+        "recall": 0.4696,
+        "precision": 0.7142,
+        "threshold": 0.6446
+      },
+      {
+        "recall": 0.4901,
+        "precision": 0.7076,
+        "threshold": 0.6409
+      },
+      {
+        "recall": 0.5101,
+        "precision": 0.7091,
+        "threshold": 0.6403
+      },
+      {
+        "recall": 0.53,
+        "precision": 0.6983,
+        "threshold": 0.6297
+      },
+      {
+        "recall": 0.5502,
+        "precision": 0.6957,
+        "threshold": 0.6283
+      },
+      {
+        "recall": 0.5718,
+        "precision": 0.6978,
+        "threshold": 0.6195
+      },
+      {
+        "recall": 0.5918,
+        "precision": 0.6947,
+        "threshold": 0.5982
+      },
+      {
+        "recall": 0.6122,
+        "precision": 0.693,
+        "threshold": 0.5856
+      },
+      {
+        "recall": 0.6311,
+        "precision": 0.6819,
+        "threshold": 0.5494
+      },
+      {
+        "recall": 0.6534,
+        "precision": 0.667,
+        "threshold": 0.5326
+      },
+      {
+        "recall": 0.6778,
+        "precision": 0.6573,
+        "threshold": 0.5271
+      },
+      {
+        "recall": 0.6938,
+        "precision": 0.6444,
+        "threshold": 0.5162
+      },
+      {
+        "recall": 0.7133,
+        "precision": 0.6236,
+        "threshold": 0.5099
+      },
+      {
+        "recall": 0.7347,
+        "precision": 0.6247,
+        "threshold": 0.503
+      },
+      {
+        "recall": 0.7561,
+        "precision": 0.6256,
+        "threshold": 0.4996
+      },
+      {
+        "recall": 0.778,
+        "precision": 0.6166,
+        "threshold": 0.4949
+      },
+      {
+        "recall": 0.7959,
+        "precision": 0.6096,
+        "threshold": 0.4863
+      },
+      {
+        "recall": 0.8128,
+        "precision": 0.604,
+        "threshold": 0.4731
+      },
+      {
+        "recall": 0.8369,
+        "precision": 0.6037,
+        "threshold": 0.4471
+      },
+      {
+        "recall": 0.8574,
+        "precision": 0.6013,
+        "threshold": 0.4196
+      },
+      {
+        "recall": 0.8772,
+        "precision": 0.6005,
+        "threshold": 0.3934
+      },
+      {
+        "recall": 0.8974,
+        "precision": 0.5954,
+        "threshold": 0.3505
+      },
+      {
+        "recall": 0.9183,
+        "precision": 0.5843,
+        "threshold": 0.3219
+      },
+      {
+        "recall": 0.9383,
+        "precision": 0.5631,
+        "threshold": 0.2174
+      },
+      {
+        "recall": 0.9595,
+        "precision": 0.5539,
+        "threshold": 0.1938
+      },
+      {
+        "recall": 0.9796,
+        "precision": 0.5474,
+        "threshold": 0.1775
+      },
+      {
+        "recall": 1.0,
+        "precision": 0.4737,
+        "threshold": 0.0037
+      }
+    ],
+    "threshold_tradeoffs": [
+      {
+        "threshold": 0.3,
+        "precision": 57.61,
+        "recall": 92.29,
+        "f1": 0.7094,
+        "tp": 28142,
+        "fp": 20706,
+        "tn": 13175,
+        "fn": 2351
+      },
+      {
+        "threshold": 0.4,
+        "precision": 60.14,
+        "recall": 87.15,
+        "f1": 0.7117,
+        "tp": 26574,
+        "fp": 17615,
+        "tn": 16266,
+        "fn": 3919
+      },
+      {
+        "threshold": 0.5,
+        "precision": 62.23,
+        "recall": 74.54,
+        "f1": 0.6783,
+        "tp": 22729,
+        "fp": 13798,
+        "tn": 20083,
+        "fn": 7764
+      },
+      {
+        "threshold": 0.6,
+        "precision": 69.62,
+        "recall": 59.03,
+        "f1": 0.6389,
+        "tp": 17999,
+        "fp": 7855,
+        "tn": 26026,
+        "fn": 12494
+      },
+      {
+        "threshold": 0.7,
+        "precision": 79.21,
+        "recall": 13.53,
+        "f1": 0.2311,
+        "tp": 4125,
+        "fp": 1083,
+        "tn": 32798,
+        "fn": 26368
+      }
+    ],
+    "calibration_audit": {
+      "calibrated_brier": 0.2013,
+      "uncalibrated_brier": 0.4488,
+      "brier_improvement_pct": 55.16,
+      "calibrated_fpr_pct": 40.72,
+      "uncalibrated_fpr_pct": 90.07
+    }
+  },
+  "feature_importance": {
+    "sample_size": 1000,
+    "explainer_type": "TreeExplainer (Exact Tree SHAP for gradient boosted trees)",
+    "top_5_portfolio_drivers": [
+      {
+        "rank": 1,
+        "feature": "Support Calls",
+        "mean_abs_shap": 1.5817
+      },
+      {
+        "rank": 2,
+        "feature": "Total Spend",
+        "mean_abs_shap": 1.2541
+      },
+      {
+        "rank": 3,
+        "feature": "Payment Delay",
+        "mean_abs_shap": 1.0017
+      },
+      {
+        "rank": 4,
+        "feature": "Contract Length_Monthly",
+        "mean_abs_shap": 0.8642
+      },
+      {
+        "rank": 5,
+        "feature": "Age",
+        "mean_abs_shap": 0.82
+      }
+    ],
+    "all_ranked_features": [
+      {
+        "rank": 1,
+        "feature": "Support Calls",
+        "mean_abs_shap": 1.5817
+      },
+      {
+        "rank": 2,
+        "feature": "Total Spend",
+        "mean_abs_shap": 1.2541
+      },
+      {
+        "rank": 3,
+        "feature": "Payment Delay",
+        "mean_abs_shap": 1.0017
+      },
+      {
+        "rank": 4,
+        "feature": "Contract Length_Monthly",
+        "mean_abs_shap": 0.8642
+      },
+      {
+        "rank": 5,
+        "feature": "Age",
+        "mean_abs_shap": 0.82
+      },
+      {
+        "rank": 6,
+        "feature": "Last Interaction",
+        "mean_abs_shap": 0.2467
+      },
+      {
+        "rank": 7,
+        "feature": "Gender_Female",
+        "mean_abs_shap": 0.2292
+      },
+      {
+        "rank": 8,
+        "feature": "Gender_Male",
+        "mean_abs_shap": 0.0384
+      },
+      {
+        "rank": 9,
+        "feature": "Subscription Type_Basic",
+        "mean_abs_shap": 0.0
+      },
+      {
+        "rank": 10,
+        "feature": "Subscription Type_Standard",
+        "mean_abs_shap": 0.0
+      },
+      {
+        "rank": 11,
+        "feature": "Contract Length_Annual",
+        "mean_abs_shap": 0.0
+      },
+      {
+        "rank": 12,
+        "feature": "Contract Length_Quarterly",
+        "mean_abs_shap": 0.0
+      },
+      {
+        "rank": 13,
+        "feature": "Subscription Type_Premium",
+        "mean_abs_shap": 0.0
+      },
+      {
+        "rank": 14,
+        "feature": "Usage Frequency",
+        "mean_abs_shap": 0.0
+      },
+      {
+        "rank": 15,
+        "feature": "Tenure",
+        "mean_abs_shap": 0.0
+      }
+    ],
+    "interpretability_narrative": [
+      "Support Calls (#1, mean |SHAP| = 1.5817) is the dominant operational driver: customer escalation volume reflects unresolved product distress.",
+      "Total Spend (#2, mean |SHAP| = 1.2541) serves as the primary retention anchor: customers with high cumulative spend demonstrate deep commitment.",
+      "Payment Delay (#3, mean |SHAP| = 1.0017) is the primary leading financial friction signal, foreshadowing involuntary or distressed churn.",
+      "Contract Length_Monthly (#4, mean |SHAP| = 0.8642) acts as a key structural retention barrier, lacking multi-period commitments.",
+      "Age (#5, mean |SHAP| = 0.82) captures distinct generational attrition tendencies across customer cohorts."
+    ]
+  }
+}

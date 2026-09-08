@@ -6,6 +6,7 @@ import {
   ClipboardList,
   Users,
   Crosshair,
+  Brain,
   ChevronLeft,
   ChevronRight,
   LogOut,
@@ -25,6 +26,9 @@ export default function Sidebar({ currentUser, onLogout }) {
     }
     if (to.startsWith('/analysis')) {
       return location.pathname.startsWith('/analysis');
+    }
+    if (to.startsWith('/model-insights')) {
+      return location.pathname.startsWith('/model-insights');
     }
     return location.pathname.startsWith(to);
   };
@@ -49,6 +53,11 @@ export default function Sidebar({ currentUser, onLogout }) {
       to: '/analysis/1',
       label: 'Churn Analysis',
       icon: Crosshair,
+    },
+    {
+      to: '/model-insights',
+      label: 'Model Insights',
+      icon: Brain,
     },
   ];
 

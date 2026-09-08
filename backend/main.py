@@ -61,6 +61,7 @@ from backend.db import (
 )
 from src.preprocessing import get_feature_names, normalize_customer_features
 from src.calibrated_model import CalibratedXGBClassifier
+from backend.model_insights import get_model_insights
 
 
 # Security Configuration
@@ -998,6 +999,35 @@ def delete_employee_endpoint(
         "unassigned_tasks": unassigned_count,
         "id": employee_id,
     }
+
+
+# ==============================================================================
+# Model Insights Analytics Endpoint
+# ==============================================================================
+
+@app.get("/model/insights")
+def model_insights_endpoint(
+    current_user: Dict[str, Any] = Depends(get_current_user),
+):
+    """
+    Returns comprehensive, real precomputed analytics across all 6 core requirements:
+    1. Exploratory Data Analysis (EDA)
+    2. Data Preprocessing Architecture
+    3. Class Imbalance Strategy
+    4. Model Architecture & Calibration
+    5. Test Set Performance & PR Curve
+    6. Global Portfolio-wide SHAP Feature Importance
+    PROTECTED: Requires authenticated user session.
+    """
+    try:
+        data = get_model_insights()
+        return data
+    except Exception as exc:
+        logger.error(f"Failed to fetch model insights: {exc}")
+        raise HTTPException(
+            status_code=status.HTTP_500_INTERNAL_SERVER_ERROR,
+            detail=f"Failed to load model insights: {str(exc)}",
+        )
 
 
 if __name__ == "__main__":

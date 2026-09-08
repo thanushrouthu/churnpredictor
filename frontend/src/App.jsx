@@ -8,6 +8,7 @@ import DashboardOverview from './views/DashboardOverview.jsx';
 import TaskQueueView from './views/TaskQueueView.jsx';
 import EmployeesView from './views/EmployeesView.jsx';
 import AnalysisView from './views/AnalysisView.jsx';
+import ModelInsightsView from './views/ModelInsightsView.jsx';
 import { supabase } from './utils/supabase.js';
 import { API_BASE_URL } from './utils/api.js';
 
@@ -62,6 +63,7 @@ export default function App() {
           <Route path="/employees" element={<EmployeesView />} />
           <Route path="/analysis/:taskId" element={<AnalysisView />} />
           <Route path="/analysis" element={<Navigate to="/analysis/1" replace />} />
+          <Route path="/model-insights" element={<ModelInsightsView />} />
           <Route path="*" element={<Navigate to="/overview" replace />} />
         </Route>
       </Route>
