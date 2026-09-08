@@ -11,6 +11,7 @@ Includes:
 
 import os
 import sys
+import re
 import logging
 from datetime import datetime, timedelta, timezone
 from pathlib import Path
@@ -167,7 +168,7 @@ async def custom_rate_limit_exceeded_handler(request: Request, exc: RateLimitExc
 class SignupRequest(BaseModel):
     name: str = Field(..., min_length=2, max_length=100)
     email: str = Field(..., min_length=5, max_length=150)
-    password: str = Field(..., min_length=6, max_length=100)
+    password: str = Field(..., min_length=8, max_length=100)
 
 
 class LoginRequest(BaseModel):
@@ -295,8 +296,17 @@ async def signup(request: Request, body: SignupRequest, response: Response):
     if "@" not in clean_email or "." not in clean_email:
         raise HTTPException(status_code=400, detail="Please enter a valid email address.")
 
-    if len(body.password) < 6:
-        raise HTTPException(status_code=400, detail="Password must be at least 6 characters.")
+    if len(body.password) < 8:
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Password must be at least 8 characters long.",
+        )
+
+    if not re.search(r"[a-zA-Z]", body.password) or not re.search(r"\d", body.password):
+        raise HTTPException(
+            status_code=status.HTTP_400_BAD_REQUEST,
+            detail="Password must contain at least one letter and at least one number.",
+        )
 
     existing = get_user_by_email(clean_email)
     if existing:

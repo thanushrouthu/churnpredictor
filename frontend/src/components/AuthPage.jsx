@@ -252,8 +252,12 @@ export default function AuthPage({ onAuthSuccess, initialMode = 'login' }) {
 
     if (!password) {
       newErrors.password = 'Password is required.';
-    } else if (password.length < 6) {
-      newErrors.password = 'Password must be at least 6 characters.';
+    } else if (mode === 'signup') {
+      if (password.length < 8) {
+        newErrors.password = 'Password must be at least 8 characters long.';
+      } else if (!/[a-zA-Z]/.test(password) || !/\d/.test(password)) {
+        newErrors.password = 'Password must contain at least one letter and one number.';
+      }
     }
 
     if (mode === 'signup') {
@@ -360,7 +364,13 @@ export default function AuthPage({ onAuthSuccess, initialMode = 'login' }) {
       const data = await res.json();
 
       if (!res.ok) {
-        throw new Error(data.detail || 'Authentication failed. Please check your credentials.');
+        let errorMsg = 'Authentication failed. Please check your credentials.';
+        if (typeof data.detail === 'string') {
+          errorMsg = data.detail;
+        } else if (Array.isArray(data.detail) && data.detail[0]?.msg) {
+          errorMsg = data.detail[0].msg;
+        }
+        throw new Error(errorMsg);
       }
 
       setIsSuccess(true);
@@ -706,7 +716,13 @@ export default function AuthPage({ onAuthSuccess, initialMode = 'login' }) {
                         {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
                       </button>
                     </div>
-                    {errors.password && <p className="text-[11px] text-neutral-200 mt-1 font-medium">{errors.password}</p>}
+                    {errors.password ? (
+                      <p className="text-[11px] text-neutral-200 mt-1 font-medium">{errors.password}</p>
+                    ) : mode === 'signup' ? (
+                      <p id="password-requirement-hint" className="text-[11px] text-neutral-400 mt-1">
+                        Must be at least 8 characters and include both letters and numbers.
+                      </p>
+                    ) : null}
                   </div>
 
                   {/* Confirm Password Input (Signup only) */}
