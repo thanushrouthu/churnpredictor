@@ -164,7 +164,18 @@ def create_user(name: str, email: str, hashed_password: str) -> Dict[str, Any]:
             "created_at": now_iso,
         }).execute()
         if res.data and len(res.data) > 0:
-            return res.data[0]
+            user_record = res.data[0]
+            try:
+                with sqlite3.connect(SQLITE_DB_PATH) as conn:
+                    cursor = conn.cursor()
+                    cursor.execute(
+                        "INSERT OR REPLACE INTO users (id, name, email, hashed_password, created_at) VALUES (?, ?, ?, ?, ?)",
+                        (user_record["id"], name, email.strip().lower(), hashed_password, now_iso),
+                    )
+                    conn.commit()
+            except Exception:
+                pass
+            return user_record
     except Exception as exc:
         logger.info(f"Supabase user insert bypassed ({exc}); saving to local persistent DB.")
 
@@ -266,15 +277,7 @@ def get_user_by_email(email: str) -> Optional[Dict[str, Any]]:
 
 
 def get_user_by_id(user_id: int) -> Optional[Dict[str, Any]]:
-    """Retrieves user record by ID."""
-    with sqlite3.connect(SQLITE_DB_PATH) as conn:
-        conn.row_factory = sqlite3.Row
-        cursor = conn.cursor()
-        cursor.execute("SELECT * FROM users WHERE id = ?", (user_id,))
-        row = cursor.fetchone()
-        if row:
-            return dict(row)
-
+    """Retrieves user record by ID. Attempts Supabase first, falls back cleanly to local SQLite."""
     client = get_supabase_client()
     try:
         res = client.table("users").select("*").eq("id", user_id).execute()
@@ -282,6 +285,14 @@ def get_user_by_id(user_id: int) -> Optional[Dict[str, Any]]:
             return res.data[0]
     except Exception:
         pass
+
+    with sqlite3.connect(SQLITE_DB_PATH) as conn:
+        conn.row_factory = sqlite3.Row
+        cursor = conn.cursor()
+        cursor.execute("SELECT * FROM users WHERE id = ?", (user_id,))
+        row = cursor.fetchone()
+        if row:
+            return dict(row)
 
     return None
 
