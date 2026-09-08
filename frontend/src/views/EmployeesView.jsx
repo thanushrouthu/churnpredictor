@@ -83,7 +83,9 @@ export default function EmployeesView() {
   const fetchEmployees = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/employees`);
+      const res = await fetch(`${API_BASE_URL}/employees`, {
+        credentials: 'include',
+      });
       if (res.ok) {
         const data = await res.json();
         setEmployees(data);
@@ -155,6 +157,7 @@ export default function EmployeesView() {
       const res = await fetch(`${API_BASE_URL}/employees`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(payload),
       });
 
@@ -236,6 +239,7 @@ export default function EmployeesView() {
       const res = await fetch(`${API_BASE_URL}/employees/${editingEmp.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(payload),
       });
 
@@ -264,6 +268,7 @@ export default function EmployeesView() {
     try {
       const res = await fetch(`${API_BASE_URL}/employees/${deletingEmp.id}`, {
         method: 'DELETE',
+        credentials: 'include',
       });
 
       if (res.ok) {

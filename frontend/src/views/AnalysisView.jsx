@@ -62,7 +62,9 @@ export default function AnalysisView() {
   const fetchTaskDetails = async () => {
     setLoading(true);
     try {
-      const res = await fetch(`${API_BASE_URL}/tasks/detail/${taskId || 1}`);
+      const res = await fetch(`${API_BASE_URL}/tasks/detail/${taskId || 1}`, {
+        credentials: 'include',
+      });
       if (res.ok) {
         const data = await res.json();
         setTask(data);

@@ -85,8 +85,8 @@ export default function TaskQueueView() {
     setLoading(true);
     try {
       const [tasksRes, empsRes] = await Promise.all([
-        fetch(`${API_BASE_URL}/tasks`),
-        fetch(`${API_BASE_URL}/employees`),
+        fetch(`${API_BASE_URL}/tasks`, { credentials: 'include' }),
+        fetch(`${API_BASE_URL}/employees`, { credentials: 'include' }),
       ]);
       if (tasksRes.ok) {
         const tasksData = await tasksRes.json();
@@ -114,6 +114,7 @@ export default function TaskQueueView() {
       const res = await fetch(`${API_BASE_URL}/tasks/${taskId}/assign`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify({ employee_id: employeeId }),
       });
 
@@ -183,6 +184,7 @@ export default function TaskQueueView() {
       const res = await fetch(`${API_BASE_URL}/tasks`, {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(payload),
       });
 
@@ -263,6 +265,7 @@ export default function TaskQueueView() {
       const res = await fetch(`${API_BASE_URL}/tasks/${editingTask.id}`, {
         method: 'PUT',
         headers: { 'Content-Type': 'application/json' },
+        credentials: 'include',
         body: JSON.stringify(payload),
       });
 
@@ -295,6 +298,7 @@ export default function TaskQueueView() {
     try {
       const res = await fetch(`${API_BASE_URL}/tasks/${deletingTask.id}`, {
         method: 'DELETE',
+        credentials: 'include',
       });
       if (res.ok) {
         const deletedId = deletingTask.id;

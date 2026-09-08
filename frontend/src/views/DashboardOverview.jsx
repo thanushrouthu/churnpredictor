@@ -38,7 +38,9 @@ export default function DashboardOverview({ currentUser }) {
 
   const fetchTasks = async () => {
     try {
-      const res = await fetch(`${API_BASE_URL}/tasks`);
+      const res = await fetch(`${API_BASE_URL}/tasks`, {
+        credentials: 'include',
+      });
       if (res.ok) {
         const data = await res.json();
         setTasks(data);

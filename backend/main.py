@@ -607,15 +607,19 @@ class AssignEmployeeRequest(BaseModel):
 
 
 @app.get("/employees")
-def list_employees():
+def list_employees(current_user: Dict[str, Any] = Depends(get_current_user)):
     """
     Returns list of all employees (both seeded and manual) and their active tasks.
+    PROTECTED: Requires authenticated user session.
     """
     return get_all_employees_with_tasks()
 
 
 @app.post("/employees", status_code=status.HTTP_201_CREATED)
-def create_new_employee(body: CreateEmployeeRequest):
+def create_new_employee(
+    body: CreateEmployeeRequest,
+    current_user: Dict[str, Any] = Depends(get_current_user),
+):
     """
     Manually creates a new company employee record in the database.
     Accepts JSON payload: { name/full_name, role/job_title, department, email, initial_tasks }
@@ -683,18 +687,23 @@ class UpdateCustomerTaskRequest(BaseModel):
 
 
 @app.get("/tasks")
-def list_all_tasks_queue():
+def list_all_tasks_queue(current_user: Dict[str, Any] = Depends(get_current_user)):
     """
     Returns all customer evaluation tasks across the organization for the Task Queue.
+    PROTECTED: Requires authenticated user session.
     """
     return get_all_tasks()
 
 
 @app.post("/tasks", status_code=status.HTTP_201_CREATED)
-def create_customer_task(body: CreateCustomerTaskRequest):
+def create_customer_task(
+    body: CreateCustomerTaskRequest,
+    current_user: Dict[str, Any] = Depends(get_current_user),
+):
     """
     Creates a new customer account, computes real-time churn prediction & SHAP factors,
     and persists the evaluation task directly to the database.
+    PROTECTED: Requires authenticated user session.
     """
     if model_pipeline is None:
         raise HTTPException(status_code=503, detail="Model pipeline is not loaded.")
@@ -743,9 +752,13 @@ def create_customer_task(body: CreateCustomerTaskRequest):
 
 
 @app.get("/tasks/detail/{task_id}")
-def get_task_details(task_id: int):
+def get_task_details(
+    task_id: int,
+    current_user: Dict[str, Any] = Depends(get_current_user),
+):
     """
     Returns details of a single task for the dedicated Churn Analysis window.
+    PROTECTED: Requires authenticated user session.
     """
     task = get_task_by_id(task_id)
     if not task:
@@ -754,17 +767,26 @@ def get_task_details(task_id: int):
 
 
 @app.get("/tasks/{employee_id}")
-def list_tasks_for_employee(employee_id: int):
+def list_tasks_for_employee(
+    employee_id: int,
+    current_user: Dict[str, Any] = Depends(get_current_user),
+):
     """
     Returns list of customers assigned to a specific employee for churn evaluation.
+    PROTECTED: Requires authenticated user session.
     """
     return get_tasks_by_employee_id(employee_id)
 
 
 @app.put("/tasks/{task_id}/assign")
-def assign_employee_to_task(task_id: int, body: AssignEmployeeRequest):
+def assign_employee_to_task(
+    task_id: int,
+    body: AssignEmployeeRequest,
+    current_user: Dict[str, Any] = Depends(get_current_user),
+):
     """
     Assigns an employee to a specific task.
+    PROTECTED: Requires authenticated user session.
     Accepts employee_id (or null to unassign).
     """
     updated_task = assign_task_employee(task_id, body.employee_id)
@@ -778,7 +800,11 @@ def assign_employee_to_task(task_id: int, body: AssignEmployeeRequest):
 
 
 @app.put("/tasks/{task_id}")
-def update_customer_task_endpoint(task_id: int, body: UpdateCustomerTaskRequest):
+def update_customer_task_endpoint(
+    task_id: int,
+    body: UpdateCustomerTaskRequest,
+    current_user: Dict[str, Any] = Depends(get_current_user),
+):
     """
     Updates an existing customer task.
     If inference-relevant features changed (Contract, tenure, MonthlyCharges,
@@ -857,9 +883,13 @@ def update_customer_task_endpoint(task_id: int, body: UpdateCustomerTaskRequest)
 
 
 @app.delete("/tasks/{task_id}")
-def delete_customer_task_endpoint(task_id: int):
+def delete_customer_task_endpoint(
+    task_id: int,
+    current_user: Dict[str, Any] = Depends(get_current_user),
+):
     """
     Permanently deletes a customer task from SQLite and Supabase.
+    PROTECTED: Requires authenticated user session.
     """
     existing_task = get_task_by_id(task_id)
     if not existing_task:
@@ -877,9 +907,14 @@ def delete_customer_task_endpoint(task_id: int):
 
 
 @app.put("/employees/{employee_id}")
-def update_employee_endpoint(employee_id: int, body: UpdateEmployeeRequest):
+def update_employee_endpoint(
+    employee_id: int,
+    body: UpdateEmployeeRequest,
+    current_user: Dict[str, Any] = Depends(get_current_user),
+):
     """
     Updates specialist details in the Employee Roster.
+    PROTECTED: Requires authenticated user session.
     """
     all_emps = get_all_employees_with_tasks()
     existing = next((e for e in all_emps if e["id"] == employee_id), None)
@@ -899,7 +934,10 @@ def update_employee_endpoint(employee_id: int, body: UpdateEmployeeRequest):
 
 
 @app.delete("/employees/{employee_id}")
-def delete_employee_endpoint(employee_id: int):
+def delete_employee_endpoint(
+    employee_id: int,
+    current_user: Dict[str, Any] = Depends(get_current_user),
+):
     """
     Deletes an employee from the roster.
     Safely unassigns any active customer tasks linked to this employee first,
