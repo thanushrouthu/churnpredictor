@@ -112,10 +112,11 @@ app = FastAPI(
 
 # Explicit allowed origins required for CORS when allow_credentials=True
 allowed_origins_env = os.getenv("ALLOWED_ORIGINS", os.getenv("CORS_ORIGINS", ""))
-parsed_origins = [o.strip() for o in allowed_origins_env.split(",") if o.strip()]
+parsed_origins = [o.strip().rstrip("/") for o in allowed_origins_env.split(",") if o.strip()]
 
 ALLOWED_ORIGINS = list(dict.fromkeys([
     "https://churnpredictor-roan.vercel.app",
+    "https://churnpredictor.vercel.app",
     "http://localhost:5173",
     "http://127.0.0.1:5173",
     "http://localhost:3000",
@@ -189,16 +190,26 @@ def create_jwt_token(user_id: int, email: str) -> str:
     return jwt.encode(payload, JWT_SECRET, algorithm=JWT_ALGORITHM)
 
 
+COOKIE_SECURE = (
+    os.getenv("COOKIE_SECURE", "").lower() == "true"
+    or os.getenv("ENVIRONMENT", "").lower() in ["production", "prod"]
+    or bool(os.getenv("RAILWAY_ENVIRONMENT"))
+    or bool(os.getenv("RENDER"))
+    or bool(os.getenv("ALLOWED_ORIGINS"))
+)
+COOKIE_SAMESITE = "none" if COOKIE_SECURE else "lax"
+
+
 def set_auth_cookie(response: Response, token: str):
-    """Sets secure httpOnly cookie on response."""
+    """Sets secure httpOnly cookie on response. Uses SameSite=None and Secure=True in production for cross-site auth."""
     response.set_cookie(
         key="access_token",
         value=token,
         httponly=True,
-        samesite="lax",
+        samesite=COOKIE_SAMESITE,
         max_age=JWT_EXPIRE_HOURS * 3600,
         path="/",
-        secure=False,  # False allows local HTTP testing (http://localhost)
+        secure=COOKIE_SECURE,
     )
 
 
@@ -398,7 +409,8 @@ async def logout(response: Response):
     response.delete_cookie(
         key="access_token",
         path="/",
-        samesite="lax",
+        samesite=COOKIE_SAMESITE,
+        secure=COOKIE_SECURE,
     )
     return {"message": "Logged out successfully"}
 

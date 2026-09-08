@@ -8,11 +8,12 @@ Tests:
 5. Validates JSON relationship integrity: employee_id foreign key links and task attributes.
 """
 
+import os
 import sys
 import json
 import requests
 
-API_URL = "http://127.0.0.1:8000"
+API_URL = os.getenv("API_URL", os.getenv("VITE_API_URL", "http://127.0.0.1:8000"))
 
 
 def run_phase1_verification():

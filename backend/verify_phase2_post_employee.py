@@ -10,6 +10,8 @@ Tests:
 7. DB verification of task assignment persistence
 """
 
+import os
+import sys
 import json
 import sqlite3
 import time
@@ -19,7 +21,7 @@ from pathlib import Path
 
 WORKSPACE_ROOT = Path(__file__).resolve().parent.parent
 DB_PATH = WORKSPACE_ROOT / "data" / "app.db"
-BASE_URL = "http://127.0.0.1:8000"
+BASE_URL = os.getenv("API_URL", os.getenv("VITE_API_URL", "http://127.0.0.1:8000"))
 
 
 def http_get(endpoint: str):

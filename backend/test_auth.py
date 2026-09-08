@@ -12,13 +12,14 @@ Tests:
 9. Verification that passwords in DB are bcrypt-hashed, never plaintext
 """
 
+import os
 import sys
 import sqlite3
 from pathlib import Path
 import requests
 
 WORKSPACE_ROOT = Path(__file__).resolve().parent.parent
-API_URL = "http://127.0.0.1:8000"
+API_URL = os.getenv("API_URL", os.getenv("VITE_API_URL", "http://127.0.0.1:8000"))
 
 
 def test_auth_suite():

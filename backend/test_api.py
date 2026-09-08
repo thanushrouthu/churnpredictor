@@ -6,11 +6,12 @@ Sends requests to FastAPI server /predict endpoint and validates:
 3. Local SHAP explainability factors.
 """
 
+import os
 import sys
 import time
 import requests
 
-API_URL = "http://127.0.0.1:8000"
+API_URL = os.getenv("API_URL", os.getenv("VITE_API_URL", "http://127.0.0.1:8000"))
 
 
 def wait_for_server(max_retries: int = 15, delay: float = 1.0):
