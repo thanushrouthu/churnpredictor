@@ -68,7 +68,7 @@ export default function AuthPage({ onAuthSuccess, initialMode = 'login' }) {
   const configuredClientId =
     (typeof window !== 'undefined' && localStorage.getItem('GOOGLE_CLIENT_ID_OVERRIDE')) ||
     (typeof import.meta !== 'undefined' && import.meta.env?.VITE_GOOGLE_CLIENT_ID) ||
-    '';
+    '814568847786-m1fkieo5vjhufsopskn7gt0b9kje3a2h.apps.googleusercontent.com';
 
   const isClientIdConfigured = Boolean(
     configuredClientId &&
@@ -311,8 +311,13 @@ export default function AuthPage({ onAuthSuccess, initialMode = 'login' }) {
 
   const handleCustomGoogleButtonClick = () => {
     if (!isClientIdConfigured) {
-      // Zero fake login: Open configuration dialog explaining exact requirements
-      setGoogleConfigModalOpen(true);
+      if (import.meta.env.DEV) {
+        // Local development: Open configuration dialog explaining requirements
+        setGoogleConfigModalOpen(true);
+      } else {
+        // Production: Friendly, professional error message
+        showToast('Google Sign-In is temporarily unavailable, please use email/password.', 'error');
+      }
       return;
     }
 
@@ -589,7 +594,7 @@ export default function AuthPage({ onAuthSuccess, initialMode = 'login' }) {
                     disabled={isLoading || isSuccess}
                     onClick={handleCustomGoogleButtonClick}
                     className="btn-google btn-clip-corner w-full py-2.5 px-4 font-semibold text-xs flex items-center justify-center space-x-2.5 cursor-pointer disabled:opacity-50 select-none"
-                    title="Click to configure Google OAuth Client ID"
+                    title={import.meta.env.DEV ? "Click to configure Google OAuth Client ID" : "Continue with Google"}
                   >
                     <GoogleIcon className="w-4 h-4 flex-shrink-0" />
                     <span>Continue with Google</span>
@@ -845,8 +850,8 @@ export default function AuthPage({ onAuthSuccess, initialMode = 'login' }) {
           </div>
         </div>
       )}
-      {/* Google OAuth Setup / Client ID Configuration Dialog */}
-      {googleConfigModalOpen && (
+      {/* Google OAuth Setup / Client ID Configuration Dialog (Local Dev Only - unreachable in production) */}
+      {import.meta.env.DEV && googleConfigModalOpen && (
         <div className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md">
           <div className="hud-card-outer w-full max-w-md p-[1px] shadow-2xl">
             <div className="hud-card-inner p-6 relative">
