@@ -11,7 +11,7 @@ import sqlite3
 import logging
 from pathlib import Path
 from datetime import datetime, timezone
-from typing import Dict, Any, Optional, List
+from typing import Dict, Any, Optional, List, Tuple
 from dotenv import load_dotenv
 from supabase import create_client, Client
 
