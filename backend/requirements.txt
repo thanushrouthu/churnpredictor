@@ -18,6 +18,7 @@ requests>=2.31.0
 bcrypt>=5.0.0
 PyJWT>=2.10.0
 google-auth>=2.20.0
+slowapi>=0.1.9
 
 # Database
 supabase>=2.3.0

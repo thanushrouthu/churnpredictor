@@ -27,10 +27,14 @@ import numpy as np
 import pandas as pd
 import shap
 from fastapi import FastAPI, HTTPException, BackgroundTasks, Depends, Request, Response, status
+from fastapi.responses import JSONResponse
 from fastapi.middleware.cors import CORSMiddleware
 from pydantic import BaseModel, Field, ConfigDict
 from google.oauth2 import id_token as google_id_token
 from google.auth.transport import requests as google_requests
+from slowapi import Limiter
+from slowapi.util import get_remote_address
+from slowapi.errors import RateLimitExceeded
 
 # Ensure workspace root is in sys.path
 WORKSPACE_ROOT = Path(__file__).resolve().parent.parent
@@ -140,6 +144,20 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Rate Limiter Configuration (5 requests / minute per client IP on sensitive auth endpoints)
+limiter = Limiter(key_func=get_remote_address)
+app.state.limiter = limiter
+
+@app.exception_handler(RateLimitExceeded)
+async def custom_rate_limit_exceeded_handler(request: Request, exc: RateLimitExceeded):
+    return JSONResponse(
+        status_code=status.HTTP_429_TOO_MANY_REQUESTS,
+        content={
+            "detail": "Too many attempts. For security reasons, authentication requests are limited to 5 per minute. Please wait a moment and try again."
+        },
+        headers={"Retry-After": "60"},
+    )
 
 
 # ==============================================================================
@@ -265,7 +283,8 @@ async def get_current_user(request: Request) -> Dict[str, Any]:
 # ==============================================================================
 
 @app.post("/auth/signup", response_model=UserResponse)
-async def signup(body: SignupRequest, response: Response):
+@limiter.limit("5/minute")
+async def signup(request: Request, body: SignupRequest, response: Response):
     """
     Registers a new user account:
     - Validates email and minimum password length
@@ -300,7 +319,8 @@ async def signup(body: SignupRequest, response: Response):
 
 
 @app.post("/auth/login", response_model=UserResponse)
-async def login(body: LoginRequest, response: Response):
+@limiter.limit("5/minute")
+async def login(request: Request, body: LoginRequest, response: Response):
     """
     Authenticates an existing user:
     - Compares password against bcrypt hash
